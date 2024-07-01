@@ -1,0 +1,29 @@
+#==============================================================================
+#
+#          FILE:  es.lang
+# 
+#   DESCRIPTION:  Archivo de traducción para el script configureNix.sh
+#                 Este archivo contiene las traducciones de mensajes y cadenas.
+#                 utilizado en el script para admitir varios idiomas.
+# 
+#      LANGUAGE:  es [Espanhol]
+# 
+#  REQUIREMENTS:  Este archivo debe cargarse mediante el script configureNix.sh
+#
+#        AUTHOR:  Dias, Sandro - pro.sandrodias@gmail.com
+#       COMPANY:  freedom
+#       VERSION:  1.0
+#       CREATED:  07/01/2024
+#      REVISION:  0
+#
+#       LICENSE:  Este archivo tiene licencia MIT, puede obtener una copia 
+#                 de licencia en https://github.com/gitdias/PostInstallNixOS/blob/main/LICENSE
+#
+#==============================================================================
+
+# Ejemplo de contenido del archivo de traducción:
+# Cada línea contiene una clave y una traducción asociada.
+
+HELLO_WORLD="¡Hola mundo!"
+
+# Agregue más traducciones según sea necesario...
