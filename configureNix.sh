@@ -6,9 +6,18 @@
 # 
 #         USAGE:  ./configureNix.sh [options]
 # 
-#   DESCRIPTION:    PT = "Este script é parte de projeto pessoal que visa facilitar/automatizar/agilizar o processo de pós instalação do NixOS modificando os arquivos configuration.nix e hardware-configuration.nix contidos em /etc/nixos" de Pororocka (Sandro Dias)
-#                   US = "This script is part of a personal project that aims to facilitate/automate/speed up the NixOS post-installation process by modifying the configuration.nix and hardware-configuration.nix files contained in /etc/nixos" by Pororocka (Sandro Dias)
-#                   ES = "Este script es parte de un proyecto personal que tiene como objetivo facilitar/automatizar/acelerar el proceso posterior a la instalación de NixOS modificando los archivos configuración.nix y hardware-configuration.nix contenidos en /etc/nixos" por Pororocka (Sandro Dias)
+#   DESCRIPTION:    PT = "Este script é parte de projeto pessoal que visa facilitar/automatizar/agilizar
+#                         o processo de pós instalação do NixOS modificando os arquivos configuration.nix
+#                         e hardware-configuration.nix contidos em /etc/nixos" de Pororocka (Sandro Dias).
+#
+#                   US = "This script is part of a personal project that aims to facilitate/automate/speed
+#                         up the NixOS post-installation process by modifying the configuration.nix and
+#                         hardware-configuration.nix files contained in /etc/nixos" by Pororocka (Sandro Dias).
+#
+#                   ES = "Este script es parte de un proyecto personal que tiene como objetivo
+#                         facilitar/automatizar/acelerar el proceso posterior a la instalación de NixOS
+#                         modificando los archivos configuración.nix y hardware-configuration.nix contenidos
+#                         en /etc/nixos" por Pororocka (Sandro Dias).
 #       OPTIONS:  ---
 #    COMPATIBLE:  NixOS 24.05
 #
@@ -39,3 +48,47 @@ function_header_fixed () {
                                                                   Version 24.05-1"
     tput sc # Restore cursor position
 }
+
+function_detect_language () {
+# Check the LANG environment variable
+if [ -n "$LANG" ]; then
+
+  # Extracts the first two letters and
+  # save them in the LANGUAGE_CODE variable
+  LANGUAGE_CODE=${LANG:0:2}
+
+  # Choosing the .lang file to use
+  case $LANGUAGE_CODE in
+      en)
+        source ./LANGUAGE/$LANGUAGE_CODE.lang
+        ;;
+      pt)
+        source ./LANGUAGE/$LANGUAGE_CODE.lang
+        ;;
+      es)
+        source ./LANGUAGE/$LANGUAGE_CODE.lang
+        ;;
+      *)
+        source ./LANGUAGE/us.lang
+        ;;
+  esac
+
+  
+  echo $HELLO_WORLD
+  exit 0
+
+else
+
+  exit 1
+
+fi
+
+}
+
+function_header_fixed
+
+function_detect_language 
+
+#function_requirements () {
+    
+#}
