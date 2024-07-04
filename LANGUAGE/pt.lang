@@ -34,3 +34,4 @@ ALERT_REQUIREMENTS="Para satisfazer os requerimentos mínimos preciso instalar o
 CONFIRM_INSTALL_REQUIREMENTS="Posso instalá-los pra você? (s/n): "
 ALL_RIGHT_REQUIREMENTS="Deu tudo certo! Instalei os programas que faltavam."
 FAILURE_TO_INSTALL_REQUIREMENTS="Alguns programas ainda não foram instalados corretamente."
+PREPARING_ENVIRONMENT="Preparando o ambiente necessário..."

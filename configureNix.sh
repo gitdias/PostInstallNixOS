@@ -137,7 +137,7 @@ function_requirements() {
     local pid=$!
     local delay=0.1
     local spinstr='|/-\'
-    local msg="Preparando o ambiente necessário..."
+    local msg="${PREPARING_ENVIRONMENT}"
     echo -e "$msg\n"
     while ps -p $pid &>/dev/null; do
       local temp=${spinstr#?}
