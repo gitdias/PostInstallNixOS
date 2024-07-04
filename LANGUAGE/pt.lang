@@ -24,6 +24,13 @@
 # Exemplo de conteúdo do arquivo de tradução:
 # Cada linha contém uma chave e uma tradução associada.
 
-HELLO_WORLD="Olá, Mundo!"
+HELLO_WORLD="Olá Mundo!"
 
 # Adicione mais traduções conforme necessário...
+HELLO="Olá"
+WELCOME_SCRIPT="Seja muito bem vindo(a) ao Post-Install do NixOS"
+ALERT_REQUIREMENTS_OOPS="Ops! Percebi que um ou mais programas precisam ser instalados."
+ALERT_REQUIREMENTS="Para satisfazer os requerimentos mínimos preciso instalar os seguintes pacotes: "
+CONFIRM_INSTALL_REQUIREMENTS="Posso instalá-los pra você? (s/n): "
+ALL_RIGHT_REQUIREMENTS="Deu tudo certo! Instalei os programas que faltavam."
+FAILURE_TO_INSTALL_REQUIREMENTS="Alguns programas ainda não foram instalados corretamente."
