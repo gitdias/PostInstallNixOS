@@ -57,12 +57,11 @@ RESET='\e[0m'
 NIXOS_VERSION=$(nixos-version)
 AUTHOR="by Mr. Pororocka - Sandro Dias"
 
-
 # Funtion Header Fixed
 function_header_fixed() {
   clear
   tput cup 0 0 # Move cursor to top
-  echo -e "\n 
+  echo -e "\033[5m\n 
     ____           _     ___           _        _ _     _   _ _       ___  ____\n\
    |  _ \ ___  ___| |_  |_ _|_ __  ___| |_ __ _| | |   | \ | (_)_  __/ _ \/ ___|\n\
    | |_) / _ \/ __| __|__| || '_ \/ __| __/ _\` | | |   |  \| | \ \/ / | | \___\n\
@@ -70,7 +69,7 @@ function_header_fixed() {
    |_|   \___/|___/\__| |___|_| |_|___/\__\__,_|_|_|   |_| \_|_/_/\_\\___/|____/\n\
 ----------------------------------------------------------------------------------\n\
                                                                   Version 24.05-1\n\
-                                                                                    "
+                                                                                    \033[5m"
   tput sc # Restore cursor position
 }
 
@@ -99,7 +98,7 @@ function_detect_language() {
     esac
 
     #echo $HELLO_WORLD
-    echo -e "   $HELLO ${BOLD}${YELLOW}$USER!${RESET} $WELCOME_SCRIPT ${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
+    echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
     return 0
 
   else
@@ -113,7 +112,7 @@ function_detect_language() {
 function_requirements() {
 
   # List of programs required in this script
-  list_programs=("lolcat" )
+  list_programs=("lolcat")
 
   # Função para verificar se os list_programas estão instalados
   check_list_programs() {
@@ -127,40 +126,76 @@ function_requirements() {
     if [ ${#not_installed[@]} -eq 0 ]; then
       return 0
     else
-      echo -e "   ${CYAN}${ALERT_REQUIREMENTS_OOPS}${RESET}\n   ${ALERT_REQUIREMENTS}${BOLD}${YELLOW}\n   ${not_installed[*]}${RESET}\n "
+      echo -e "   ${GREEN}${ALERT_REQUIREMENTS_OOPS}${RESET}\n   ${ALERT_REQUIREMENTS}${BOLD}${YELLOW}\n   ${not_installed[*]}${RESET}\n "
       return 1
     fi
   }
 
-  # Função para mostrar a barra de progresso do tipo spin
-  show_progress() {
-    local pid=$!
-    local delay=0.1
-    local spinstr='|/-\'
-    local msg="${PREPARING_ENVIRONMENT}"
-    echo -e "$msg\n"
-    while ps -p $pid &>/dev/null; do
-      local temp=${spinstr#?}
-      printf " [%c]  " "$spinstr"
-      local spinstr=$temp${spinstr%"$temp"}
-      sleep $delay
-      printf "\b\b\b\b\b\b"
+  # Função de barra de progresso
+  progress_bar() {
+    local speed=0.05  # Velocidade da animação em segundos (mais rápida)
+    local width=20    # Largura da barra de progresso
+    local position=0  # Posição inicial do bloco <-X->
+    local direction=1 # Direção do movimento (1 = direita, -1 = esquerda)
+    local progress=0  # Progresso inicial
+
+    while [ $progress -le 100 ]; do
+      # Limpar a linha atual
+      printf "\r"
+
+      # Construir a barra de progresso
+      bar=""
+      for ((i = 0; i < $width; i++)); do
+        if [ $i -eq $position ]; then
+          bar+="<-X->"
+          i=$((i + 4))
+        else
+          bar+=" "
+        fi
+      done
+
+      # Atualizar a posição do bloco <-X->
+      position=$((position + direction))
+      if [ $position -ge $((width - 5)) ] || [ $position -le 0 ]; then
+        direction=$((direction * -1))
+      fi
+
+      # Incrementar o progresso
+      progress=$((progress + 1))
+
+      # Pausar para criar a animação
+      sleep $speed
+
+      # Exibir a barra de progresso
+      #if nix-env -q | grep -q "^lolcat"; then
+      #  printf " ${YELLOW}[${bar:0:$width}] ${PREPARING_ENVIRONMENT}${RESET}" | lolcat
+      #else
+        printf " ${YELLOW}[${bar:0:$width}] ${PREPARING_ENVIRONMENT}${RESET}"
+      #fi
+
     done
-    printf "\r%s\r" "$(printf ' %.0s' $(seq 1 ${#msg}))" # Apaga a mensagem
+
+    # Limpar a linha final antes de sair
+    printf "\r\033[K"
   }
 
   # Primeira verificação
   if check_list_programs; then
     exit 0
   fi
-
+  # Testa a conexão com a Internet
+  if ! function_detect_internet; then
+    suggest_connection
+  fi
   # Pergunta se deseja instalar os list_programas faltantes
   read -p "${CONFIRM_INSTALL_REQUIREMENTS}" response
   if [[ "$response" == "s" || "$response" == "S" || "$response" == "y" || "$response" == "Y" ]]; then
     for list_pkgs in "${not_installed[@]}"; do
       {
         nix-env -iA nixos.$list_pkgs &>/dev/null
-      } & show_progress
+      } &
+      progress_bar
+      #show_progress
     done
 
     # Segunda verificação após a instalação
@@ -176,6 +211,24 @@ function_requirements() {
 
 }
 
+function_detect_internet() {
+  # Testa a conexão pingando o Google DNS
+  if ping -c 1 8.8.8.8 &>/dev/null; then
+    #echo "Conexão com a Internet está OK."
+    return 0
+  else
+    echo "Sem conexão com a Internet."
+    return 1
+  fi
+
+}
+
+# Função para sugerir conexão usando nmcli
+suggest_connection() {
+  echo "Sugestão: Conectar-se a uma rede Wi-Fi usando o comando:"
+  echo "nmcli device wifi connect <SSID> password <PASSWORD>"
+}
+
 # Code applied
 
 clear
@@ -185,3 +238,5 @@ function_header_fixed | lolcat 2>/dev/null
 function_detect_language
 
 function_requirements
+
+#function_detect_internet
