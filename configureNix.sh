@@ -239,6 +239,7 @@ function_requirements() {
 
 # Code applied
 
+clear
 
 function_header_fixed | lolcat 2>/dev/null
 
