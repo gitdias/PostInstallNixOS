@@ -56,7 +56,7 @@ RESET='\e[0m'
 FLASHING='\033[5m'
 # Version NixOS
 NIXOS_VERSION=$(nixos-version)
-AUTHOR="by Mr. Pororocka - Sandro Dias"
+AUTHOR="by Mr.Pororocka - Sandro Dias"
 
 # Funtion Header Fixed
 function_header_fixed() {
@@ -69,8 +69,7 @@ function_header_fixed() {
    |  __/ (_) \__ \ ||___| || | | \__ \ || (_| | | |   | |\  | |>  <| |_| |___)|\n\
    |_|   \___/|___/\__| |___|_| |_|___/\__\__,_|_|_|   |_| \_|_/_/\_\\___/|____/\n\
 ----------------------------------------------------------------------------------\n\
-                                                                  Version 24.05-1\n\
-                                                                                    "
+    ${AUTHOR}                                 Version 24.05-1\n"
   tput sc # Restore cursor position
 }
 
@@ -85,14 +84,14 @@ function_header_flashing() {
    |  __/ (_) \__ \ ||___| || | | \__ \ || (_| | | |   | |\  | |>  <| |_| |___)|\n\
    |_|   \___/|___/\__| |___|_| |_|___/\__\__,_|_|_|   |_| \_|_/_/\_\\___/|____/\n\
 ----------------------------------------------------------------------------------\n\
-                                                                  Version 24.05-1\n\
-                                                                                    ${FLASHING}"
+    ${AUTHOR}                                 Version 24.05-1\n${FLASHING}"
   tput sc # Restore cursor position
 }
+
 # Function progress bar
 function_progress_bar() {
   local speed=0.05  # Animation speed in seconds
-  local width=30    # Progress bar width
+  local width=20    # Progress bar width
   local position=0  # Starting position of block <-X->
   local direction=1 # Movement direction (1 = right, -1 = left)
   local progress=0  # Initial percentage
@@ -125,11 +124,9 @@ function_progress_bar() {
     sleep $speed
 
     # Exibir a barra de progresso
-    #if nix-env -q | grep -q "^lolcat"; then
-    #  printf " ${YELLOW}[${bar:0:$width}] ${PREPARING_ENVIRONMENT}${RESET}" | lolcat
-    #else
+    printf ""
     printf " ${YELLOW}[${bar:0:$width}] ${PREPARING_ENVIRONMENT}${RESET}"
-    #fi
+    printf ""
 
   done
 
@@ -162,7 +159,7 @@ function_detect_language() {
     esac
 
     #echo $HELLO_WORLD
-    echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
+    echo -e "\n   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
     return 0
 
   else
@@ -186,20 +183,20 @@ function_detect_internet() {
 
 function_requirements() {
   # List of programs required in this script
-  list_programs=("lolcat")
+  list_programs=("lolcat" "pciutils")
 
   # Function to check if list_programs are installed
-    function_check_list_programs() {
+  function_check_list_programs() {
     not_installed=()
     for list_pkgs in "${list_programs[@]}"; do
-      if ! command -v $list_pkgs &>/dev/null; then
-        not_installed+=($list_pkgs)
+      if ! nix-env -q | grep -q "$list_pkgs"; then
+              not_installed+=($list_pkgs)
       fi
     done
 
     if [ ${#not_installed[@]} -eq 0 ]; then
       return 0
-    else  
+    else
       echo -e "   ${GREEN}${ALERT_REQUIREMENTS_OOPS}${RESET}\n   ${ALERT_REQUIREMENTS}${BOLD}${YELLOW}\n   ${not_installed[*]}${RESET}\n"
       return 1
     fi
@@ -213,7 +210,7 @@ function_requirements() {
   if ! function_detect_internet; then
     function_detect_internet
   fi
-#Asks if you want to install the missing list_programs
+  #Asks if you want to install the missing list_programs
   read -p "${CONFIRM_INSTALL_REQUIREMENTS}" response
   if [[ "$response" == "s" || "$response" == "S" || "$response" == "y" || "$response" == "Y" ]]; then
     for list_pkgs in "${not_installed[@]}"; do
@@ -222,19 +219,31 @@ function_requirements() {
       } &
       function_progress_bar
     done
-
-    # Test after installation of requirements
-    if function_check_list_programs; then
-      function_header_fixed | lolcat 2>/dev/null
-      echo -e "   ${CYAN}${ALL_RIGHT_REQUIREMENTS}\n 
-   ${YELLOW}$list_pkgs\n"
-      exit 0
-    else
-      echo "${RED}${FAILURE_TO_INSTALL_REQUIREMENTS}"
-    fi
+  elif [[ "$response" == "n" || "$response" == "N" ]]; then
+    echo -e "\n   ${BG_RED}${NEED_TO_INSTALL}\n"
+    exit 0
+  else
+    clear
+    function_header_fixed #| lolcat 2>/dev/null
+    echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
+    function_requirements
   fi
 
+  # Test after installation of requirements
+  if function_check_list_programs; then
+   function_header_flashing | lolcat 2>/dev/null
+    echo -e "   ${CYAN}${ALL_RIGHT_REQUIREMENTS}\n 
+   ${YELLOW}$list_pkgs\n"
+   echo -e "${PRESS_ENTER_CONTINUE}"
+   function_header_fixed | lolcat 2>/dev/null
+   echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
+   exit 0
+  else
+    echo -e "   ${BG_RED}${FAILURE_TO_INSTALL_REQUIREMENTS}\n"
+  fi
+  
 }
+
 
 
 # Code applied
