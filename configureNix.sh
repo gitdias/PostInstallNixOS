@@ -57,7 +57,6 @@ FLASHING='\033[5m'
 # Version NixOS
 NIXOS_VERSION=$(nixos-version)
 AUTHOR="by Mr.Pororocka - Sandro Dias"
-
 # Funtion Header Fixed
 function_header_fixed() {
   clear
@@ -72,7 +71,6 @@ function_header_fixed() {
     ${AUTHOR}                                 Version 24.05-1\n"
   tput sc # Restore cursor position
 }
-
 # Funtion Header Flashing
 function_header_flashing() {
   clear
@@ -87,7 +85,6 @@ function_header_flashing() {
     ${AUTHOR}                                 Version 24.05-1\n${FLASHING}"
   tput sc # Restore cursor position
 }
-
 # Function progress bar
 function_progress_bar() {
   local speed=0.05  # Animation speed in seconds
@@ -95,11 +92,10 @@ function_progress_bar() {
   local position=0  # Starting position of block <-X->
   local direction=1 # Movement direction (1 = right, -1 = left)
   local progress=0  # Initial percentage
-
+#
   while [ $progress -le 100 ]; do
     # Clear current line
     printf "\r"
-
     # Build the progress bar
     bar=""
     for ((i = 0; i < $width; i++)); do
@@ -110,38 +106,30 @@ function_progress_bar() {
         bar+=" "
       fi
     done
-
     # Updating position of block <-X->
     position=$((position + direction))
     if [ $position -ge $((width - 5)) ] || [ $position -le 0 ]; then
       direction=$((direction * -1))
     fi
-
     # Increase progress
     progress=$((progress + 1))
-
     # Do not comment, as it prevents the creation of the progress bar
     sleep $speed
-
     # Exibir a barra de progresso
     printf ""
     printf " ${YELLOW}[${bar:0:$width}] ${PREPARING_ENVIRONMENT}${RESET}"
     printf ""
-
   done
-
   # Clear the end line before leaving
   printf "\r\033[K"
 }
-
+#
 function_detect_language() {
   # Check the LANG environment variable
   if [ -n "$LANG" ]; then
-
     # Extracts the first two letters and
     # save them in the LANGUAGE_CODE variable
     LANGUAGE_CODE=${LANG:0:2}
-
     # Choosing the .lang file to use
     case $LANGUAGE_CODE in
     en)
@@ -157,19 +145,14 @@ function_detect_language() {
       source ./LANGUAGE/us.lang
       ;;
     esac
-
     #echo $HELLO_WORLD
     echo -e "\n   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
     return 0
-
   else
-
     return 1
-
   fi
-
 }
-
+#
 function_detect_internet() {
   # Test the connection by pinging Google DNS
   if ping -c 1 8.8.8.8 &>/dev/null; then
@@ -180,11 +163,10 @@ function_detect_internet() {
     exit 1
   fi
 }
-
+#
 function_requirements() {
   # List of programs required in this script
   list_programs=("lolcat" "pciutils")
-
   # Function to check if list_programs are installed
   function_check_list_programs() {
     not_installed=()
@@ -193,7 +175,6 @@ function_requirements() {
               not_installed+=($list_pkgs)
       fi
     done
-
     if [ ${#not_installed[@]} -eq 0 ]; then
       return 0
     else
@@ -201,7 +182,6 @@ function_requirements() {
       return 1
     fi
   }
-
   # First Check
   if function_check_list_programs; then
     return 0
@@ -228,7 +208,6 @@ function_requirements() {
     echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
     function_requirements
   fi
-
   # Test after installation of requirements
   if function_check_list_programs; then
    function_header_flashing | lolcat 2>/dev/null
@@ -241,18 +220,14 @@ function_requirements() {
   else
     echo -e "   ${BG_RED}${FAILURE_TO_INSTALL_REQUIREMENTS}\n"
   fi
-  
 }
 
 
-
 # Code applied
-
 clear
-
+#
 function_header_fixed | lolcat 2>/dev/null
-
+#
 function_detect_language
-
+#
 function_requirements
-
