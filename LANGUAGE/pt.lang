@@ -28,7 +28,7 @@ HELLO_WORLD="Olá Mundo!"
 
 # Adicione mais traduções conforme necessário...
 HELLO="Olá"
-WELCOME_SCRIPT="Seja muito bem vindo(a) ao Post-Install do NixOS"
+WELCOME_SCRIPT="Seja muito bem vindo(a) ao script Post-Install do NixOS"
 ALERT_REQUIREMENTS_OOPS="Ops! Percebi que um ou mais programas precisam ser instalados."
 ALERT_REQUIREMENTS="Para prosseguir preciso instalar os seguintes pacotes: "
 KEEP_CALM="Mas fique tranquilo(a), não é nada demais, eu cuido disso pra você."
@@ -42,3 +42,5 @@ CONNECT_WIFI="Conecte o cabo rede ou para conectar-se a uma rede Wi-Fi use o com
 COMMAND_CONNECT_WIFI="nmcli device wifi connect <SSID> password <PASSWORD>"
 NEED_TO_INSTALL="Para prosseguir é necessário instalar os pacotes citados."
 PRESS_ENTER_CONTINUE="Pressione ENTER para continuar..."
+TITLE_PRESENTATION="APRESENTAÇÃO"
+TEXT_PRESENTATION="Como entuasiasta em linux, estou fascinado com as possibilidades de uso do NixOS, comecei usando a extinta distro Conectiva Linux, passei pelo Debian, Kurumin Linux, Ubuntu, Fedora e muitos outros parando no Arch Linux, até conhecer o NixOS. Como disse suas possibilidaes de uso, sua simplicidade de configuração (apesar da longa curva de aprendizagem e da falta de materiais em português) decidi mergulhar de cabeça no NixOS. Como atualmente só tenho um laptop pra uso geral e vez ou outra preciso reinstalar o Sistema Operacional enfrento as cansativas instalações de drivers NVidia e todas os programas que uso no dia a dia, logo, este script surgio de uma necessidade pessoal de resolver essas questões automatizando quase tudo que preciso com poucos arquivos de configuração. Agradeço a todos da Comunidade NixOS que sempre que preciso tirar alguma dúvida sempre alguém me responde de imediato e agradeço principalmente a Deus e a minha família (esposa e filhos) que me dão força e motivos pra sempre continuar."

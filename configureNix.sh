@@ -57,6 +57,9 @@ FLASHING='\033[5m'
 # Version NixOS
 NIXOS_VERSION=$(nixos-version)
 AUTHOR="by Mr.Pororocka - Sandro Dias"
+# Simbols
+CHECK_MARK="\u2713"
+NO_CHECK_MARK="\u2717"
 # Funtion Header Fixed
 function_header_fixed() {
   clear
@@ -85,6 +88,12 @@ function_header_flashing() {
     ${AUTHOR}                                 Version 24.05-1\n${FLASHING}"
   tput sc # Restore cursor position
 }
+# Function Welcome User
+function_welcome_user() {
+  if [ $? -eq 0 ]; then
+  echo -e "\n   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
+fi
+}
 # Function progress bar
 function_progress_bar() {
   local speed=0.05  # Animation speed in seconds
@@ -92,7 +101,7 @@ function_progress_bar() {
   local position=0  # Starting position of block <-X->
   local direction=1 # Movement direction (1 = right, -1 = left)
   local progress=0  # Initial percentage
-#
+  #
   while [ $progress -le 100 ]; do
     # Clear current line
     printf "\r"
@@ -142,11 +151,9 @@ function_detect_language() {
       source ./LANGUAGE/$LANGUAGE_CODE.lang
       ;;
     *)
-      source ./LANGUAGE/us.lang
+      source ./LANGUAGE/en.lang
       ;;
     esac
-    #echo $HELLO_WORLD
-    echo -e "\n   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
     return 0
   else
     return 1
@@ -172,7 +179,7 @@ function_requirements() {
     not_installed=()
     for list_pkgs in "${list_programs[@]}"; do
       if ! nix-env -q | grep -q "$list_pkgs"; then
-              not_installed+=($list_pkgs)
+        not_installed+=($list_pkgs)
       fi
     done
     if [ ${#not_installed[@]} -eq 0 ]; then
@@ -210,24 +217,114 @@ function_requirements() {
   fi
   # Test after installation of requirements
   if function_check_list_programs; then
-   function_header_flashing | lolcat 2>/dev/null
-    echo -e "   ${CYAN}${ALL_RIGHT_REQUIREMENTS}\n 
+    function_header_flashing | lolcat 2>/dev/null
+    echo -e "   ${CYAN}${ALL_RIGHT_REQUIREMENTS}\n
    ${YELLOW}$list_pkgs\n"
-   echo -e "${PRESS_ENTER_CONTINUE}"
-   function_header_fixed | lolcat 2>/dev/null
-   echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
-   exit 0
+    echo -e "${PRESS_ENTER_CONTINUE}"
+    function_header_fixed | lolcat 2>/dev/null
+    echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
+    return 0
   else
     echo -e "   ${BG_RED}${FAILURE_TO_INSTALL_REQUIREMENTS}\n"
   fi
+}
+# Function Backup
+function_backup_configuration() {
+
+  local src_dir="/etc/nixos"
+  local dst_dir="/etc/nixos/bak"
+
+  # Checks if the target directory exists, otherwise creates it using sudo
+  if [[ ! -d "$dst_dir" ]]; then
+    sudo mkdir -p "$dst_dir"
+  fi
+
+  # List all .nix files in the source directory /etc/nixos
+  for file in "$src_dir"/*.nix; do
+    if [[ -f "$file" ]]; then
+      # Extract the base name from the file
+      base_name=$(basename "$file")
+      # Sets the name of the initial backup file
+      backup_file="$dst_dir/$base_name.bak"
+
+      # If the backup file already exists, increment the version number
+      if [[ -e "$backup_file" ]]; then
+        version=1
+        while [[ -e "$dst_dir/$base_name.bak$version" ]]; do
+          ((version++))
+        done
+        backup_file="$dst_dir/$base_name.bak$version"
+      fi
+
+      # Copy the file to the destination with the appropriate name
+      sudo cp "$file" "$backup_file"
+    fi
+  done
+
+}
+
+function_typed_texts() {
+echo -e "                              ${BOLD}${YELLOW}${TITLE_PRESENTATION}${RESET}\n"
+# Text used
+text="${TEXT_PRESENTATION}"
+
+# maximum character length per line
+length_max_line=80
+# delay between printing each character
+delay=0.005
+
+# Funçtion split text
+function_split_text() {
+    local text="$1"
+    local length_max="$2"
+    
+    echo "$text" | awk -v len=$length_max '
+    {
+        n = split($0, a, " ")
+        line = "        "a[1]
+        for (i = 2; i <= n; i++) {
+            if (length(line " " a[i]) > len) {
+                print line
+                line = "  " a[i]
+            } else {
+                line = line " " a[i]
+            }
+        }
+        print line
+    }'
+}
+
+# Call the function and store the result in an array
+IFS=$'\n' read -d '' -r -a lines <<< "$(function_split_text "$text" $length_max_line)"
+
+# Loop for each line in the lines array
+for line in "${lines[@]}"; do
+  # Loop to print each character with delay
+  for ((i=0; i<${#line}; i++)); do
+    echo -n "${line:$i:1}"
+    sleep $delay
+  done
+  echo
+done
+
+echo -e "\n                                                   ${CYAN}$AUTHOR${RESET}\n"
 }
 
 
 # Code applied
 clear
-#
-function_header_fixed | lolcat 2>/dev/null
+function_backup_configuration
+
 #
 function_detect_language
+function_welcome_user
 #
 function_requirements
+#
+function_header_fixed | lolcat 2>/dev/null
+function_welcome_user
+#
+echo ""
+function_typed_texts
+echo -e "\n${FLASHING}${PRESS_ENTER_CONTINUE}${FLASHING}${RESET}\n"
+read
