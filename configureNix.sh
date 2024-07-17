@@ -173,7 +173,7 @@ function_detect_internet() {
 #
 function_requirements() {
   # List of programs required in this script
-  list_programs=("lolcat" "pciutils")
+  list_programs=("lolcat" "pciutils" "zip" "unzip")
   # Function to check if list_programs are installed
   function_check_list_programs() {
     not_installed=()
@@ -233,34 +233,27 @@ function_backup_configuration() {
 
   local src_dir="/etc/nixos"
   local dst_dir="/etc/nixos/bak"
+  local backup_file_base="backup_configuration.zip"
 
   # Checks if the target directory exists, otherwise creates it using sudo
   if [[ ! -d "$dst_dir" ]]; then
     sudo mkdir -p "$dst_dir"
   fi
 
-  # List all .nix files in the source directory /etc/nixos
-  for file in "$src_dir"/*.nix; do
-    if [[ -f "$file" ]]; then
-      # Extract the base name from the file
-      base_name=$(basename "$file")
-      # Sets the name of the initial backup file
-      backup_file="$dst_dir/$base_name.bak"
+  # Sets the name of the initial backup file
+  backup_file="$dst_dir/$backup_file_base"
 
-      # If the backup file already exists, increment the version number
-      if [[ -e "$backup_file" ]]; then
-        version=1
-        while [[ -e "$dst_dir/$base_name.bak$version" ]]; do
-          ((version++))
-        done
-        backup_file="$dst_dir/$base_name.bak$version"
-      fi
+  # If the backup file already exists, increment the version number
+  if [[ -e "$backup_file" ]]; then
+    version=1
+    while [[ -e "$dst_dir/${version}_$backup_file_base" ]]; do
+      ((version++))
+    done
+    backup_file="$dst_dir/${version}_$backup_file_base"
+  fi
 
-      # Copy the file to the destination with the appropriate name
-      sudo cp "$file" "$backup_file"
-    fi
-  done
-
+  # Create a zip archive of all .nix files in the source directory
+  sudo zip -j "$backup_file" "$src_dir"/*.nix
 }
 
 function_typed_texts() {
