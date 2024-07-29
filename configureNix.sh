@@ -71,7 +71,7 @@ function_header_fixed() {
    |  __/ (_) \__ \ ||___| || | | \__ \ || (_| | | |   | |\  | |>  <| |_| |___)|\n\
    |_|   \___/|___/\__| |___|_| |_|___/\__\__,_|_|_|   |_| \_|_/_/\_\\___/|____/\n\
 ----------------------------------------------------------------------------------\n\
-    ${AUTHOR}                                 Version 24.05-1\n"
+    ${AUTHOR}                                  Version 24.05-1\n"
   tput sc # Restore cursor position
 }
 # Funtion Header Flashing
@@ -91,13 +91,22 @@ function_header_flashing() {
 # Function Welcome User
 function_welcome_user() {
   if [ $? -eq 0 ]; then
-  echo -e "\n   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
-fi
+    echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
+  fi
+}
+# Function
+function_resources_status() {
+  if [ $? -eq 0 ]; then
+    echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
+  fi
+
+
+  echo MAKE_BAK_INITIAL
 }
 # Function progress bar
 function_progress_bar() {
   local speed=0.05  # Animation speed in seconds
-  local width=20    # Progress bar width
+  local width=25    # Progress bar width
   local position=0  # Starting position of block <-X->
   local direction=1 # Movement direction (1 = right, -1 = left)
   local progress=0  # Initial percentage
@@ -126,7 +135,7 @@ function_progress_bar() {
     sleep $speed
     # Exibir a barra de progresso
     printf ""
-    printf " ${YELLOW}[${bar:0:$width}] ${PREPARING_ENVIRONMENT}${RESET}"
+    printf " ${BOLD}${YELLOW}[${bar:0:$width}]${RESET}" #${PREPARING_ENVIRONMENT}${RESET}"
     printf ""
   done
   # Clear the end line before leaving
@@ -203,6 +212,7 @@ function_requirements() {
     for list_pkgs in "${not_installed[@]}"; do
       {
         nix-env -iA nixos.$list_pkgs &>/dev/null
+        echo -e " ${YELLOW}$list_pkgs${RESET} ${INSTALL_SUCCESS}"
       } &
       function_progress_bar
     done
@@ -217,60 +227,69 @@ function_requirements() {
   fi
   # Test after installation of requirements
   if function_check_list_programs; then
-    function_header_flashing | lolcat 2>/dev/null
-    echo -e "   ${CYAN}${ALL_RIGHT_REQUIREMENTS}\n
-   ${YELLOW}$list_pkgs\n"
-    echo -e "${PRESS_ENTER_CONTINUE}"
+    function_header_fixed | lolcat 2>/dev/null
+    echo -e "   ${ALL_RIGHT_REQUIREMENTS}${RESET}\n"
+    echo -e " ${BOLD}${PRESS_ENTER_CONTINUE}"
+    read
     function_header_fixed | lolcat 2>/dev/null
     echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
     return 0
   else
     echo -e "   ${BG_RED}${FAILURE_TO_INSTALL_REQUIREMENTS}\n"
+    exit 1
   fi
 }
-# Function Backup
-function_backup_configuration() {
-
+# Function Backup Initial
+function_backup_initial() {
   local src_dir="/etc/nixos"
   local dst_dir="/etc/nixos/bak"
   local backup_file_base="backup_configuration.zip"
-
   # Checks if the target directory exists, otherwise creates it using sudo
   if [[ ! -d "$dst_dir" ]]; then
+    echo -e "\n   ${BOLD}${DONT_WORRY^^} ${NEED_PASSWORD_MAKE_DIRBAK_INITIAL}${RESET}\n\
+     ${dst_dir}/${backup_file_base}\n"
     sudo mkdir -p "$dst_dir"
   fi
-
   # Sets the name of the initial backup file
   backup_file="$dst_dir/$backup_file_base"
-
-  # If the backup file already exists, increment the version number
-  if [[ -e "$backup_file" ]]; then
-    version=1
-    while [[ -e "$dst_dir/${version}_$backup_file_base" ]]; do
-      ((version++))
-    done
-    backup_file="$dst_dir/${version}_$backup_file_base"
+  # Creates backup_configuration.zip if it does not exist
+  if [[ ! -e "$backup_file" ]]; then
+    # Creates a zip archive of all .nix files in the source directory
+    sudo zip -j "$backup_file" "$src_dir"/*.nix
+    # Make file resources.status
+    sudo touch /etc/nixos/bak/resources.status
+    local date_str=$(date +%Y_%d_%m)
+    echo -e "BAK-Initial_Applied-${date_str}" | sudo tee /etc/nixos/bak/resources.status > /dev/null 
   fi
-
-  # Create a zip archive of all .nix files in the source directory
+}
+# Function Backup Sequential
+function_backup_sequential() {
+  local src_dir="/etc/nixos"
+  local dst_dir="/etc/nixos/bak"
+  local backup_file_base="backup_configuration.zip"
+  local version=1
+  # Increments the version until it finds an available file name
+  while [[ -e "$dst_dir/${version}_$backup_file_base" ]]; do
+    ((version++))
+  done
+  # Sets the name of the sequential backup file
+  local backup_file="$dst_dir/${version}_$backup_file_base"
+  # Creates a zip archive of all .nix files in the source directory
   sudo zip -j "$backup_file" "$src_dir"/*.nix
 }
-
 function_typed_texts() {
-echo -e "                              ${BOLD}${YELLOW}${TITLE_PRESENTATION}${RESET}\n"
-# Text used
-text="${TEXT_PRESENTATION}"
-
-# maximum character length per line
-length_max_line=80
-# delay between printing each character
-delay=0.005
-
-# Funçtion split text
-function_split_text() {
+  echo -e "                              ${BOLD}${YELLOW}${TITLE_PRESENTATION}${RESET}\n"
+  # Text used
+  text="${TEXT_PRESENTATION}"
+  # maximum character length per line
+  length_max_line=80
+  # delay between printing each character
+  delay=0.0005
+  # Funçtion split text
+  function_split_text() {
     local text="$1"
     local length_max="$2"
-    
+
     echo "$text" | awk -v len=$length_max '
     {
         n = split($0, a, " ")
@@ -285,39 +304,28 @@ function_split_text() {
         }
         print line
     }'
-}
-
-# Call the function and store the result in an array
-IFS=$'\n' read -d '' -r -a lines <<< "$(function_split_text "$text" $length_max_line)"
-
-# Loop for each line in the lines array
-for line in "${lines[@]}"; do
-  # Loop to print each character with delay
-  for ((i=0; i<${#line}; i++)); do
-    echo -n "${line:$i:1}"
-    sleep $delay
+  }
+  # Call the function and store the result in an array
+  IFS=$'\n' read -d '' -r -a lines <<<"$(function_split_text "$text" $length_max_line)"
+  # Loop for each line in the lines array
+  for line in "${lines[@]}"; do
+    # Loop to print each character with delay
+    for ((i = 0; i < ${#line}; i++)); do
+      echo -n "${line:$i:1}"
+      sleep $delay
+    done
+    echo
   done
-  echo
-done
-
-echo -e "\n                                                   ${CYAN}$AUTHOR${RESET}\n"
+  echo -e "\n                                                   ${CYAN}$AUTHOR${RESET}\n"
 }
-
-
 # Code applied
 clear
-function_backup_configuration
-
-#
 function_detect_language
-function_welcome_user
-#
 function_requirements
-#
 function_header_fixed | lolcat 2>/dev/null
 function_welcome_user
-#
+
+tput cup 11 0
+function_backup_initial
 echo ""
-function_typed_texts
-echo -e "\n${FLASHING}${PRESS_ENTER_CONTINUE}${FLASHING}${RESET}\n"
-read
+tput sc
