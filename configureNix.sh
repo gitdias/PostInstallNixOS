@@ -66,14 +66,13 @@ NO_CHECK_MARK="\u2717"
 function_header_fixed() {
   clear
   tput cup 0 0 # Move cursor to top
-  echo -e "\n 
-    ____           _     ___           _        _ _     _   _ _       ___  ____\n\
+  echo -e "    ____           _     ___           _        _ _     _   _ _       ___  ____\n\
    |  _ \ ___  ___| |_  |_ _|_ __  ___| |_ __ _| | |   | \ | (_)_  __/ _ \/ ___|\n\
    | |_) / _ \/ __| __|__| || '_ \/ __| __/ _\` | | |   |  \| | \ \/ / | | \___\n\
-   |  __/ (_) \__ \ ||___| || | | \__ \ || (_| | | |   | |\  | |>  <| |_| |___)|\n\
+   |  __/ (_) \__ \ ||___| || | | \__ \ || (_| | | |   | |\  | |>  <| |_| /___)|\n\
    |_|   \___/|___/\__| |___|_| |_|___/\__\__,_|_|_|   |_| \_|_/_/\_\\___/|____/\n\
 ----------------------------------------------------------------------------------\n\
-    ${AUTHOR}                                  Version 24.05-1\n"
+    ${AUTHOR}                               Version ${NIXOS_VERSION:0:5}-1"
   tput sc # Restore cursor position
 }
 # Funtion Header Flashing
@@ -115,9 +114,6 @@ function_resources_status() {
     local id="$1"
     case "$id" in
     _??) echo "\n   [ ${GREEN}${CHECK_MARK}${RESET} ] ${MSG_LANG} ${id:1:2}" ;;
-#    _EN) echo "${MSG_LANG}" ;;
-#    _PT) echo "${MSG_LANG}" ;;
-#    _ES) echo "${MSG_LANG}" ;;
     BAK) echo "${MSG_BAK}" ;;
     001) echo "${MSG_001}" ;;
     002) echo "${MSG_002}" ;;
@@ -230,7 +226,7 @@ function_requirements() {
   # List of programs required in this script
   list_programs=("lolcat" "pciutils" "zip" "unzip")
   header=$(function_header_fixed)
-  echo -e "${CYAN}${header}${RESET}"
+  echo -e "${BOLD}${CYAN}${header}${RESET}"
   # Function to check if list_programs are installed
   function_check_list_programs() {
     not_installed=()
