@@ -29,7 +29,7 @@ HELLO_WORLD="Olá Mundo!"
 # Adicione mais traduções conforme necessário...
 HELLO="Olá"
 MSG_LANG_SUP="Atualmente o script tem suporte para os idiomas:"
-MSG_REPOGIT=""
+MSG_REPOGIT="https://github.com/gitdias/PostInstallNixOS"
 MSG_LANG="Idioma detectado:"
 MSG_BAK="Teste"
 MSG_001=""

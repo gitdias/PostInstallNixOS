@@ -72,7 +72,7 @@ function_header_fixed() {
    |  __/ (_) \__ \ ||___| || | | \__ \ || (_| | | |   | |\  | |>  <| |_| /___)|\n\
    |_|   \___/|___/\__| |___|_| |_|___/\__\__,_|_|_|   |_| \_|_/_/\_\\___/|____/\n\
 ----------------------------------------------------------------------------------\n\
-    ${AUTHOR}                               Version ${NIXOS_VERSION:0:5}-1"
+    ${AUTHOR}                               Version ${NIXOS_VERSION:0:5}-1\n"
   tput sc # Restore cursor position
 }
 # Funtion Header Flashing
@@ -89,8 +89,13 @@ function_header_flashing() {
     ${AUTHOR}                                 Version 24.05-1\n${FLASHING}"
   tput sc # Restore cursor position
 }
+# Function Press Enter to continue
+function_press_enter(){
+  echo -e " ${BOLD}${PRESS_ENTER_CONTINUE}${RESET}"
+  read
+}
 # Function Welcome User
-function_welcome_user() {  
+function_welcome_user() {
   languages_available=$(function_list_languages)
   if [ $? -eq 0 ]; then
     echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}${RESET}
@@ -106,8 +111,8 @@ function_list_languages() {
   languages_horizontal=$(echo "$languages" | tr '\n' ' ')
   echo -e "${languages_horizontal^^}"
 }
-# Function Resources Status
-function_resources_status() {
+# Function Features Status
+function_features_status() {
   list_all_functions="_PT _EN _ES BAK 001 002 003 004 005 006 007 008 009 010"
   # Custom message based on role ID
   get_custom_message() {
@@ -130,7 +135,7 @@ function_resources_status() {
   }
   # Function to process the file and print custom messages
   process_file() {
-    local file_path="/etc/nixos/bak/resources.status"
+    local file_path="/etc/nixos/bak/applied.features"
     local ID_FUNCTION NAME_FUNCTION DATE_FUNCTION
 
     while IFS=- read -r ID_FUNCTION NAME_FUNCTION DATE_FUNCTION; do
@@ -175,7 +180,7 @@ function_progress_bar() {
     progress=$((progress + 1))
     # Do not comment, as it prevents the creation of the progress bar
     sleep $speed
-    # Exibir a barra de progresso
+    # Display progress bar
     printf ""
     printf " ${BOLD}${YELLOW}[${bar:0:$width}]${RESET}" #${PREPARING_ENVIRONMENT}${RESET}"
     printf ""
@@ -264,7 +269,7 @@ function_requirements() {
     echo -e "\n   ${BG_RED}${NEED_TO_INSTALL}\n"
     exit 0
   else
-    clear
+    #clear
     function_header_fixed #| lolcat 2>/dev/null
     echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
     function_requirements
@@ -272,9 +277,8 @@ function_requirements() {
   # Test after installation of requirements
   if function_check_list_programs; then
     #function_header_fixed | lolcat 2>/dev/null
-    echo -e "\n${ALL_RIGHT_REQUIREMENTS}${RESET}\n"
-    echo -e " ${BOLD}${PRESS_ENTER_CONTINUE}"
-    read
+    echo -e "\n   ${BOLD}${GREEN}${ALL_RIGHT_REQUIREMENTS}${RESET}\n"
+    function_press_enter
     function_header_fixed | lolcat 2>/dev/null
     echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
     return 0
@@ -290,7 +294,7 @@ function_backup_initial() {
   local backup_file_base="backup_configuration.zip"
   # Checks if the target directory exists, otherwise creates it using sudo
   if [[ ! -d "$dst_dir" ]]; then
-    echo -e "\n   ${BOLD}${DONT_WORRY^^} ${NEED_PASSWORD_MAKE_DIRBAK_INITIAL}${RESET}\n\
+    echo -e "   ${BOLD}${DONT_WORRY^^} ${NEED_PASSWORD_MAKE_DIRBAK_INITIAL}${RESET}\n\
      ${dst_dir}/${backup_file_base}\n"
     sudo mkdir -p "$dst_dir"
   fi
@@ -300,12 +304,15 @@ function_backup_initial() {
   if [[ ! -e "$backup_file" ]]; then
     # Creates a zip archive of all .nix files in the source directory
     sudo zip -j "$backup_file" "$src_dir"/*.nix
-    # Make file resources.status
-    sudo touch /etc/nixos/bak/resources.status
+    echo ""
+    # Make file applied.features
+    sudo touch /etc/nixos/bak/applied.features
     local date_str=$(date +%Y_%d_%m)
     # Execute the additional code regardless of the detected language
-    echo -e "_${LANGUAGE_CODE^^}-Detect_Language-${date_str}" | sudo tee -a /etc/nixos/bak/resources.status >/dev/null
-    echo -e "BAK-Backup_Initial-${date_str}" | sudo tee -a /etc/nixos/bak/resources.status >/dev/null
+    echo -e "_${LANGUAGE_CODE^^}-Detect_Language-${date_str}" | sudo tee -a /etc/nixos/bak/applied.features >/dev/null
+    echo -e "BAK-Backup_Initial-${date_str}" | sudo tee -a /etc/nixos/bak/applied.features >/dev/null
+    function_press_enter
+    function_header_fixed | lolcat 2>/dev/null
   fi
 }
 # Function Backup Sequential
@@ -372,8 +379,8 @@ function_header_fixed | lolcat 2>/dev/null
 sleep 0.5
 function_welcome_user
 sleep 0.5
-tput cup 13 0
+#tput cup 13 0
 function_backup_initial
-function_resources_status
+function_features_status
 #echo ""
-tput sc
+#tput sc
