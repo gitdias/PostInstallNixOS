@@ -60,6 +60,8 @@ AUTHOR="by Mr.Pororocka - Sandro Dias"
 # Simbols
 CHECK_MARK="\u2713"
 NO_CHECK_MARK="\u2717"
+# Others
+
 # Funtion Header Fixed
 function_header_fixed() {
   clear
@@ -89,19 +91,63 @@ function_header_flashing() {
   tput sc # Restore cursor position
 }
 # Function Welcome User
-function_welcome_user() {
+function_welcome_user() {  
+  languages_available=$(function_list_languages)
   if [ $? -eq 0 ]; then
-    echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
+    echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}${RESET}
+   ${MSG_LANG_SUP} ${BOLD}${GREEN}${languages_available^^}${RESET}.\n"
   fi
 }
-# Function
+# Function that lists .LANGUAGE content
+function_list_languages() {
+  local dir="./LANGUAGE"
+  # List files removing .lang
+  languages=$(ls "$dir"/*.lang 2>/dev/null | sed 's/.*\/\(.*\)\.lang/\1/')
+  # Convert to horizontal
+  languages_horizontal=$(echo "$languages" | tr '\n' ' ')
+  echo -e "${languages_horizontal^^}"
+}
+# Function Resources Status
 function_resources_status() {
-  if [ $? -eq 0 ]; then
-    echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
-  fi
+  list_all_functions="_PT _EN _ES BAK 001 002 003 004 005 006 007 008 009 010"
+  # Custom message based on role ID
+  get_custom_message() {
+    local id="$1"
+    case "$id" in
+    _??) echo "\n   [ ${GREEN}${CHECK_MARK}${RESET} ] ${MSG_LANG} ${id:1:2}" ;;
+#    _EN) echo "${MSG_LANG}" ;;
+#    _PT) echo "${MSG_LANG}" ;;
+#    _ES) echo "${MSG_LANG}" ;;
+    BAK) echo "${MSG_BAK}" ;;
+    001) echo "${MSG_001}" ;;
+    002) echo "${MSG_002}" ;;
+    003) echo "${MSG_003}" ;;
+    004) echo "${MSG_004}" ;;
+    005) echo "${MSG_005}" ;;
+    006) echo "${MSG_006}" ;;
+    007) echo "${MSG_007}" ;;
+    008) echo "${MSG_008}" ;;
+    009) echo "${MSG_009}" ;;
+    010) echo "${MSG_010}" ;;
+    *) echo "" ;;
+    esac
+  }
+  # Function to process the file and print custom messages
+  process_file() {
+    local file_path="/etc/nixos/bak/resources.status"
+    local ID_FUNCTION NAME_FUNCTION DATE_FUNCTION
 
-
-  echo MAKE_BAK_INITIAL
+    while IFS=- read -r ID_FUNCTION NAME_FUNCTION DATE_FUNCTION; do
+      if [[ "$list_all_functions" =~ $ID_FUNCTION ]]; then
+        local custom_message=$(get_custom_message "$ID_FUNCTION")
+        if [[ -n "$custom_message" ]]; then
+          echo -e "${custom_message}\n"
+          sleep 1
+        fi
+      fi
+    done <"$file_path"
+  }
+  process_file
 }
 # Function progress bar
 function_progress_bar() {
@@ -183,6 +229,8 @@ function_detect_internet() {
 function_requirements() {
   # List of programs required in this script
   list_programs=("lolcat" "pciutils" "zip" "unzip")
+  header=$(function_header_fixed)
+  echo -e "${CYAN}${header}${RESET}"
   # Function to check if list_programs are installed
   function_check_list_programs() {
     not_installed=()
@@ -227,8 +275,8 @@ function_requirements() {
   fi
   # Test after installation of requirements
   if function_check_list_programs; then
-    function_header_fixed | lolcat 2>/dev/null
-    echo -e "   ${ALL_RIGHT_REQUIREMENTS}${RESET}\n"
+    #function_header_fixed | lolcat 2>/dev/null
+    echo -e "\n${ALL_RIGHT_REQUIREMENTS}${RESET}\n"
     echo -e " ${BOLD}${PRESS_ENTER_CONTINUE}"
     read
     function_header_fixed | lolcat 2>/dev/null
@@ -259,7 +307,9 @@ function_backup_initial() {
     # Make file resources.status
     sudo touch /etc/nixos/bak/resources.status
     local date_str=$(date +%Y_%d_%m)
-    echo -e "BAK-Initial_Applied-${date_str}" | sudo tee /etc/nixos/bak/resources.status > /dev/null 
+    # Execute the additional code regardless of the detected language
+    echo -e "_${LANGUAGE_CODE^^}-Detect_Language-${date_str}" | sudo tee -a /etc/nixos/bak/resources.status >/dev/null
+    echo -e "BAK-Backup_Initial-${date_str}" | sudo tee -a /etc/nixos/bak/resources.status >/dev/null
   fi
 }
 # Function Backup Sequential
@@ -323,9 +373,11 @@ clear
 function_detect_language
 function_requirements
 function_header_fixed | lolcat 2>/dev/null
+sleep 0.5
 function_welcome_user
-
-tput cup 11 0
+sleep 0.5
+tput cup 13 0
 function_backup_initial
-echo ""
+function_resources_status
+#echo ""
 tput sc
