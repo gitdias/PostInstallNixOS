@@ -151,7 +151,7 @@ function_features_status() {
   process_file
 }
 # Function progress bar
-function_progress_bar() {
+function_progress_bar1() {
   local speed=0.05  # Animation speed in seconds
   local width=25    # Progress bar width
   local position=0  # Starting position of block <-X->
@@ -165,7 +165,8 @@ function_progress_bar() {
     bar=""
     for ((i = 0; i < $width; i++)); do
       if [ $i -eq $position ]; then
-        bar+="<-X->"
+        #bar+="<-X->"
+        bar+="<-NixOS->"
         i=$((i + 4))
       else
         bar+=" "
@@ -188,6 +189,49 @@ function_progress_bar() {
   # Clear the end line before leaving
   printf "\r\033[K"
 }
+#
+# Function progress bar
+function_progress_bar2() {
+  # Interval between updates
+  local delay=0.005
+
+  # Character set for simulation
+  local chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$%^&*()-_+=[]{}<>?,."
+
+  # Function to generate random character set
+  random_char() {
+    echo -n "${chars:RANDOM%${#chars}:1}"
+  }
+
+  # Function to display random characters
+  display_random_chars() {
+    local pid=$1
+    local prefix suffix
+
+    while kill -0 $pid 2>/dev/null; do
+      # Generate seven random characters for the prefix and suffix
+      prefix=$(for _ in {1..7}; do random_char; done | tr -d '\n')
+      suffix=$(for _ in {1..7}; do random_char; done | tr -d '\n')
+
+      # Display the complete string
+      echo -ne "\r${prefix}--NixOS--${suffix}"
+
+      # Wait for the defined interval
+      sleep $delay
+    done
+
+    # Clear the line before exiting
+    printf "\r\033[K"
+    echo
+  }
+
+  # Gets the PID of the function passed as an argument
+  local pid=$1
+
+  # Executa a função de exibição enquanto a função passada está em execução
+  display_random_chars $pid
+}
+
 #
 function_detect_language() {
   # Check the LANG environment variable
@@ -260,23 +304,27 @@ function_requirements() {
   if [[ "$response" == "s" || "$response" == "S" || "$response" == "y" || "$response" == "Y" ]]; then
     for list_pkgs in "${not_installed[@]}"; do
       {
-        nix-env -iA nixos.$list_pkgs &>/dev/null
+        nix-env -iA nixos.$list_pkgs &>/dev/null &
+        pkg_pid=$!
+        # Run progress bar while function_task is running
+        function_progress_bar2 $pkg_pid
+        # Wait for the installation to complete
+        wait $pkg_pid
+        # Pkg installed successfully message
         echo -e " ${YELLOW}$list_pkgs${RESET} ${INSTALL_SUCCESS}"
-      } &
-      function_progress_bar
-    done
+      }
+      done
+  
   elif [[ "$response" == "n" || "$response" == "N" ]]; then
     echo -e "\n   ${BG_RED}${NEED_TO_INSTALL}\n"
     exit 0
   else
-    #clear
-    function_header_fixed #| lolcat 2>/dev/null
+    function_header_fixed 
     echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
     function_requirements
   fi
   # Test after installation of requirements
   if function_check_list_programs; then
-    #function_header_fixed | lolcat 2>/dev/null
     echo -e "\n   ${BOLD}${GREEN}${ALL_RIGHT_REQUIREMENTS}${RESET}\n"
     function_press_enter
     function_header_fixed | lolcat 2>/dev/null
