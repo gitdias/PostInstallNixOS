@@ -24,7 +24,7 @@
 #  REQUIREMENTS:  [Dependências do sistema, bibliotecas necessárias, etc.]
 #          BUGS:  Relate problemas para [email@example.com]
 #         NOTES:  ---
-#        AUTHOR:  Dias, Sandro - pro.sandrodias@gmail.com
+#        AUTHOR:  Dias, Sandro-pro.sandrodias@gmail.com
 #       COMPANY:  freedom
 #       VERSION:  1.0
 #       CREATED:  06/30/2024
@@ -56,10 +56,20 @@ RESET='\e[0m'
 FLASHING='\033[5m'
 # Version NixOS
 NIXOS_VERSION=$(nixos-version)
-AUTHOR="by Mr.Pororocka - Sandro Dias"
+AUTHOR="by Mr.Pororocka-Sandro Dias"
 # Simbols
 CHECK_MARK="\u2713"
 NO_CHECK_MARK="\u2717"
+SYMBOL_HOME="\u2302"
+SYMBOL_SELECT="\u2714"
+SYMBOL_ERROR="\u2716"
+SYMBOL_STAR_BLACK="\u2605"
+SYMBOL_STAR_WHITE="\u2606"
+SYMBOL_TRIANGLE_UP="\u25B2"
+SYMBOLTRIANGLE_DOWN="\u25BC"
+SYMBOL_TRIANGLE_LEFT="\u25C0"
+SYMBOL_TRIANGLE_RIGHT="\u25B6"
+SYMBOL_LIGHTNING="\u26A1"
 # Others
 
 # Funtion Header Fixed
@@ -75,22 +85,9 @@ function_header_fixed() {
     ${AUTHOR}                               Version ${NIXOS_VERSION:0:5}-1\n"
   tput sc # Restore cursor position
 }
-# Funtion Header Flashing
-function_header_flashing() {
-  clear
-  tput cup 0 0 # Move cursor to top
-  echo -e "${FLASHING}\n 
-    ____           _     ___           _        _ _     _   _ _       ___  ____\n\
-   |  _ \ ___  ___| |_  |_ _|_ __  ___| |_ __ _| | |   | \ | (_)_  __/ _ \/ ___|\n\
-   | |_) / _ \/ __| __|__| || '_ \/ __| __/ _\` | | |   |  \| | \ \/ / | | \___\n\
-   |  __/ (_) \__ \ ||___| || | | \__ \ || (_| | | |   | |\  | |>  <| |_| |___)|\n\
-   |_|   \___/|___/\__| |___|_| |_|___/\__\__,_|_|_|   |_| \_|_/_/\_\\___/|____/\n\
-----------------------------------------------------------------------------------\n\
-    ${AUTHOR}                                 Version 24.05-1\n${FLASHING}"
-  tput sc # Restore cursor position
-}
+
 # Function Press Enter to continue
-function_press_enter(){
+function_press_enter() {
   echo -e " ${BOLD}${PRESS_ENTER_CONTINUE}${RESET}"
   read
 }
@@ -98,7 +95,7 @@ function_press_enter(){
 function_welcome_user() {
   languages_available=$(function_list_languages)
   if [ $? -eq 0 ]; then
-    echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}${RESET}
+    echo -e "   ${HELLO} ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}${RESET}
    ${MSG_LANG_SUP} ${BOLD}${GREEN}${languages_available^^}${RESET}.\n"
   fi
 }
@@ -265,7 +262,7 @@ function_detect_internet() {
   if ping -c 1 8.8.8.8 &>/dev/null; then
     return 0
   else
-    echo -e "   ${FLASHING}${BG_RED}${OFFLINE_INTERNET}${FLASHING}${RESET} ${MSG_OFFLINE_INTERNET}\n"
+    echo -e "   ${FLASHING}${BG_RED}${OFFLINE_INTERNET^^}${FLASHING}${RESET} ${MSG_OFFLINE_INTERNET}\n"
     echo -e "   ${CONNECT_WIFI}\n   ${YELLOW}${COMMAND_CONNECT_WIFI}${RESET}\n"
     exit 1
   fi
@@ -313,13 +310,13 @@ function_requirements() {
         # Pkg installed successfully message
         echo -e " ${YELLOW}$list_pkgs${RESET} ${INSTALL_SUCCESS}"
       }
-      done
-  
+    done
+
   elif [[ "$response" == "n" || "$response" == "N" ]]; then
     echo -e "\n   ${BG_RED}${NEED_TO_INSTALL}\n"
     exit 0
   else
-    function_header_fixed 
+    function_header_fixed
     echo -e "   $HELLO ${BOLD}${YELLOW}${USER^^}!${RESET} $WELCOME_SCRIPT ${BOLD}${CYAN}${NIXOS_VERSION:0:5}.${RESET}\n"
     function_requirements
   fi
@@ -379,7 +376,7 @@ function_backup_sequential() {
   sudo zip -j "$backup_file" "$src_dir"/*.nix
 }
 function_typed_texts() {
-  echo -e "                              ${BOLD}${YELLOW}${TITLE_PRESENTATION}${RESET}\n"
+  echo -e "                              ${BOLD}${YELLOW}${TITLE_PRESENTATION^^}${RESET}\n"
   # Text used
   text="${TEXT_PRESENTATION}"
   # maximum character length per line
@@ -419,6 +416,279 @@ function_typed_texts() {
   done
   echo -e "\n                                                   ${CYAN}$AUTHOR${RESET}\n"
 }
+# Função para exibir o menu principal
+main_menu() {
+  function_header_fixed | lolcat 2>/dev/null
+  function_welcome_user
+  printf "    ${BOLD}${YELLOW}${SYMBOL_HOME} ${TITLE_CATEGORIZED_OPTIONS_MENU^^}${RESET}
+${YELLOW}----------------------------------------------------------------------------------${RESET}
+   1. ${CYAN}${CATEGORY_All_BACKUPS}${RESET}
+   2. ${CYAN}${CATEGORY_HARDWARE_CONFIGURATION}${RESET}
+   3. ${CYAN}${CATEGORY_SOFTWARE_INSTALLATION}${RESET}
+   4. ${CYAN}${CATEGORY_SYSTEM_SETTINGS}${RESET}
+   5. ${CYAN}${CATEGORY_GAME_INSTALLATION}${RESET}
+   6. ${CYAN}${SERVICE_DEPLOYMENT}${RESET}
+
+   0. ${CYAN}${EXIT_SCRIPT}${RESET}
+${YELLOW}----------------------------------------------------------------------------------${RESET}\n"
+  echo -n "   ${CHOOSE_OPTION} "
+  read option
+  case $option in
+  1) backups_menu ;;
+  2) configure_hardware_menu ;;
+  3) install_software_menu ;;
+  4) configure_system_menu ;;
+  5) install_games_menu ;;
+  6) implement_services_menu ;;
+  0) echo "" && exit 0 ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && main_menu ;;
+  esac
+}
+
+# Submenu de backups
+backups_menu() {
+  local dst_dir="/etc/nixos/bak"
+  local backup_file_base="backup_configuration.zip"
+  function_header_fixed | lolcat 2>/dev/null
+  printf "   ${BOLD}${YELLOW}${IMPORTANT^^}${RESET} ${BOLD}${MSG_INITIAL_BACKUP_REMINDER}${RESET}
+   ${dst_dir}/${backup_file_base}
+
+    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_ALL_BACKUPS^^}${RESET}
+----------------------------------------------------------------------------------${RESET}
+   1. ${CYAN}${OPTION_VIEW_BACKUP_FOLDER}${RESET}
+   2. ${CYAN}${OPTION_VIEW_BACKUP_LIST}${RESET}
+   3. ${CYAN}${OPTION_COPY_BACKUP_TO}${RESET}
+
+   0. ${CYAN}${OPTION_BACK_TO_MAIN_MENU}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  echo -n "   ${CHOOSE_OPTION} "
+  read option
+  case $option in
+  1) echo "Ver a pasta de Backups" ;;
+  2) echo "Ver Lista de Backups" ;;
+  3) echo "Copiar Backups" ;;
+  0) main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && backups_menu ;;
+  esac
+}
+
+# Submenu de configuração de hardware
+configure_hardware_menu() {
+  function_header_fixed | lolcat 2>/dev/null
+  printf "   ${MSG_CONFIGURE_YOUR_HARDWARE}
+   ${BOLD}${MSG_NEW_FEATURES}${RESET} ${MSG_REPOGIT}
+
+    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 2-${TITLE_CONFIGURE_HARDWARE^^}${RESET}
+----------------------------------------------------------------------------------${RESET}
+   1. ${CYAN}${OPTION_VIDEO_CARD}${RESET}
+
+   0. ${CYAN}${OPTION_BACK_TO_MAIN_MENU}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  echo -n "   ${CHOOSE_OPTION} "
+  read option
+  case $option in
+  1) video_card_menu ;;
+  0) main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && configure_hardware_menu ;;
+  esac
+}
+
+# Submenu de placas de vídeo
+video_card_menu() {
+  function_header_fixed | lolcat 2>/dev/null
+  printf "   ${BOLD}${MSG_CONFIGURE_VIDEO_CARD}${RESET}
+   ${MSG_OR_DETECT_VIDEO_CARD}
+
+    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 2-${TITLE_CONFIGURE_HARDWARE^^} ${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_VIDEO_CARD^^}${RESET}
+----------------------------------------------------------------------------------${RESET}
+   1. ${CYAN}${OPTION_DETECT_VIDEO_CARD}${RESET}
+   2. ${CYAN}${OPTION_INSTALL_INTEL_CARDS}${RESET}
+   3. ${CYAN}${OPTION_INSTALL_NVIDIA_CARDS}${RESET}
+   4. ${CYAN}${OPTION_INSTALL_AMD_CARDS}${RESET}
+   5. ${CYAN}${OPTION_INSTALL_HIBRID_CARDS}${RESET}
+
+   9. ${CYAN}${OPTION_BACK_TO_PREVIOUS_MENU}${RESET}
+   0. ${CYAN}${OPTION_BACK_TO_MAIN_MENU}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  echo -n "   ${CHOOSE_OPTION} "
+  read option
+  case $option in
+  1) echo "Detectar Placas de Vídeo" ;;
+  2) echo "Instalar Placas Intel" ;;
+  3) echo "Instalar Placas NVidia" ;;
+  4) echo "Instalar Placas AMD" ;;
+  5) echo "Instalar Placas Híbridas" ;;
+  9) configure_hardware_menu ;;
+  0) main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && video_card_menu ;;
+  esac
+}
+
+# Submenu de instalação de softwares
+install_software_menu() {
+  function_header_fixed | lolcat 2>/dev/null
+  printf "   ${BOLD}${MSG_SCRIPT_PURPOSE1}${RESET}
+   ${MSG_SCRIPT_PURPOSE2}
+
+    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 3-${TITLE_INSTALL_APPS^^}${RESET}
+----------------------------------------------------------------------------------${RESET}
+   1. ${CYAN}${OPTION_ENABLE_FLATPAK}${RESET}
+   2. ${CYAN}${OPTION_INSTALL_FLATPAK}${RESET}
+   3. ${CYAN}${OPTION_ENABLE_APPIMAGE}${RESET}
+   4. ${CYAN}${OPTION_INSTALL_APPIMAGE}${RESET}
+   5. ${CYAN}${OPTION_INSTALL_APPS_ON_SYSTEM}${RESET}
+   6. ${CYAN}${OPTION_INSTALL_APPS_USER_ONLY}${RESET}
+   7. ${CYAN}${OPTION_INSTALL_APPS_IN_SANDBOX}${RESET}
+
+   0. ${CYAN}${OPTION_BACK_TO_MAIN_MENU}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  echo -n "   ${CHOOSE_OPTION} "
+  read option
+  case $option in
+  1) echo "Habilitar FlatPaks" ;;
+  2) echo "Instalar Flatpaks" ;;
+  3) echo "Habilitar AppImage" ;;
+  4) echo "Instalar AppImage" ;;
+  5) echo "Instalar Apps no Sistema" ;;
+  6) echo "Instalar Apps apenas para o Usuário" ;;
+  7) echo "Testar Apps antes de Instalar" ;;
+  0) main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && install_software_menu ;;
+  esac
+}
+
+# Submenu de configuração do sistema
+configure_system_menu() {
+  function_header_fixed | lolcat 2>/dev/null
+  printf "    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 4-${TITLE_CONFIGURE_SYSTEM^^}${RESET}
+----------------------------------------------------------------------------------${RESET}
+   1. ${CYAN}${OPTION_BOOTLOADERS}${RESET}
+   2. ${CYAN}${OPTION_DESKTOP_ENVIRONMENT}${RESET}
+
+   0. ${CYAN}${OPTION_BACK_TO_MAIN_MENU}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  echo -n "   ${CHOOSE_OPTION} "
+  read option
+  case $option in
+  1) bootloaders_menu ;;
+  2) desktops_environment_menu ;;
+  0) main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && configure_system_menu ;;
+  esac
+}
+
+# Submenu de bootloaders
+bootloaders_menu() {
+  function_header_fixed | lolcat 2>/dev/null
+  printf "    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 4-${TITLE_CONFIGURE_SYSTEM^^} ${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_BOOTLOADERS^^}${RESET}
+----------------------------------------------------------------------------------${RESET}
+   1. ${CYAN}${OPTION_GRUB_INSTALL}${RESET}
+   2. ${CYAN}${OPTION_GRUB_THEME}${RESET}
+
+   9. ${CYAN}${OPTION_BACK_TO_PREVIOUS_MENU}${RESET}
+   0. ${CYAN}${OPTION_BACK_TO_MAIN_MENU}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  echo -n "   ${CHOOSE_OPTION} "
+  read option
+  case $option in
+  1) echo "Instalar GRUB" ;;
+  2) echo "Temas GRUB" ;;
+  9) configure_system_menu ;;
+  0) main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && bootloaders_menu ;;
+  esac
+}
+
+# Submenu de ambientes desktop
+desktops_environment_menu() {
+  function_header_fixed | lolcat 2>/dev/null
+  printf "    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 4-${TITLE_CONFIGURE_SYSTEM^^} ${SYMBOL_TRIANGLE_RIGHT} 2-${TITLE_DESKTOP_ENVIRONMENT^^}${RESET}
+----------------------------------------------------------------------------------${RESET}
+   1. ${CYAN}${OPTION_INSTALL_GNOME}${RESET}
+   2. ${CYAN}${OPTION_INSTALL_KDE}${RESET}
+   3. ${CYAN}${OPTION_INSTALL_XFCE}${RESET}
+   4. ${CYAN}${OPTION_INSTALL_CINNAMON}${RESET}
+   5. ${CYAN}${OPTION_INSTALL_DEEPIN}${RESET}
+   6. ${CYAN}${OPTION_INSTALL_BUDGIE}${RESET}
+   7. ${CYAN}${OPTION_INSTALL_MATE}${RESET}
+   8. ${CYAN}${OPTION_INSTALL_HYPRLAND}${RESET}
+
+   9. ${CYAN}${OPTION_BACK_TO_PREVIOUS_MENU}${RESET}
+   0. ${CYAN}${OPTION_BACK_TO_MAIN_MENU}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  echo -n "   ${CHOOSE_OPTION} "
+  read option
+  case $option in
+  1) echo "Gnome" ;;
+  2) echo "KDE Plasma" ;;
+  3) echo "XFCE" ;;
+  4) echo "Cinnamon" ;;
+  5) echo "Deepin" ;;
+  6) echo "Budgie" ;;
+  7) echo "Mate" ;;
+  8) echo "Hyprland" ;;
+  9) configure_system_menu ;;
+  0) main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && desktops_environment_menu ;;
+  esac
+}
+
+# Submenu de instalação de jogos
+install_games_menu() {
+  function_header_fixed | lolcat 2>/dev/null
+  printf "    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 5-${TITLE_INSTALL_GAMES^^}${RESET}
+----------------------------------------------------------------------------------${RESET}
+   1. ${CYAN}${OPTION_INSTALL_STEAM}${RESET}
+   2. ${CYAN}${OPTION_INSTALL_HEROIC}${RESET}
+   3. ${CYAN}${OPTION_INSTALL_LUTRIS}${RESET}
+   4. ${CYAN}${OPTION_INSTALL_GAME_FLATPAK}${RESET}
+
+   0. ${CYAN}${OPTION_BACK_TO_MAIN_MENU}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  echo -n "   ${CHOOSE_OPTION} "
+  read option
+  case $option in
+  1) echo "Instalar Steam" ;;
+  2) echo "Instalar Heroic Games" ;;
+  3) echo "Instalar Lutris" ;;
+  4) echo "Instalar Game Flatpak" ;;
+  0) main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && install_games_menu ;;
+  esac
+}
+
+# Submenu de implantação de serviços
+implement_services_menu() {
+  function_header_fixed | lolcat 2>/dev/null
+  printf "    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 6-${TITLE_DEPLOY_SERVICE^^}${RESET}
+----------------------------------------------------------------------------------${RESET}
+   1. ${CYAN}${OPTION_INSTALL_WEB_DATA}${RESET}
+   2. ${CYAN}${OPTION_INSTALL_VIRT}${RESET}
+   3. ${CYAN}${OPTION_INSTALL_MONITORING}${RESET}
+   4. ${CYAN}${OPTION_INSTALL_DIR_DATA}${RESET}
+   5. ${CYAN}${OPTION_INSTALL_SEC_NET}${RESET}
+   6. ${CYAN}${OPTION_INSTALL_EMAIL_MSG}${RESET}
+   7. ${CYAN}${OPTION_INSTALL_DEV}${RESET}
+   8. ${CYAN}${OPTION_INSTALL_CONFIG_MANAGEMENT}${RESET}
+
+   0. ${CYAN}${OPTION_BACK_TO_MAIN_MENU}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  echo -n "   ${CHOOSE_OPTION} "
+  read option
+  case $option in
+  1) echo "Servidores Web" ;;
+  2) echo "Banco de Dados" ;;
+  3) echo "Containers" ;;
+  4) echo "Virtualização" ;;
+  5) echo "Servidores Web" ;;
+  6) echo "Banco de Dados" ;;
+  7) echo "Containers" ;;
+  8) echo "Virtualização" ;;
+  0) main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && implement_services_menu ;;
+  esac
+}
+
 # Code applied
 clear
 function_detect_language
@@ -427,8 +697,8 @@ function_header_fixed | lolcat 2>/dev/null
 sleep 0.5
 function_welcome_user
 sleep 0.5
-#tput cup 13 0
+tput cup 13 0
 function_backup_initial
-function_features_status
+main_menu
 #echo ""
-#tput sc
+tput s
