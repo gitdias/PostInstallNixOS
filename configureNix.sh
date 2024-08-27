@@ -416,7 +416,98 @@ function_typed_texts() {
   done
   echo -e "\n                                                   ${CYAN}$AUTHOR${RESET}\n"
 }
-# Função para exibir o menu principal
+
+# Function view /etc/nixos/bak directory
+function_view_dir_bak() {
+  function_header_fixed | lolcat 2>/dev/null
+  printf "   ${BOLD}${YELLOW}${IMPORTANT^^}${RESET} ${BOLD}${MSG_INITIAL_BACKUP_REMINDER}${RESET}
+   ${dst_dir}/${backup_file_base}
+
+    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_ALL_ABOUT_BACKUPS^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 1-${OPTION_VIEW_BACKUP_FOLDER^^}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  ls -lha /etc/nixos/bak
+  echo ""
+  function_press_enter
+  function_backups_menu
+}
+
+# Function to list specific files in /etc/nixos/bak directory
+function_list_backups() {
+  local src_dir="/etc/nixos/bak"
+  function_header_fixed | lolcat 2>/dev/null
+  printf "   ${MSG_SAVE_BACKUP_CONFIGURATIONS1} ${BOLD}${src_dir}${RESET}.
+   ${BOLD}${CYAN}${MSG_SAVE_BACKUP_CONFIGURATIONS2}${RESET}
+
+    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_ALL_ABOUT_BACKUPS^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 2-${TITLE_ALL_BACKUPS^^}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  ls -lh --time-style=+"%Y-%m-%d  |  %H:%M  |  " /etc/nixos/bak/[1-9]_backup_configuration.zip 2>/dev/null |
+    awk '{print $6, $7, $8, $9, $10, $11}' | sed 's/\/etc\/nixos\/bak\///'
+  printf "\n${BOLD}${MSG_FILE_BACKUP_INITIAL}${RESET}\n\n"
+  ls -lh --time-style=+"%Y-%m-%d  |  %H:%M  |  " /etc/nixos/bak/backup_configuration.zip 2>/dev/null |
+    awk '{print $6, $7, $8, $9, $10, $11}' | sed 's/\/etc\/nixos\/bak\///'
+  echo ""
+  function_press_enter
+  function_backups_menu
+}
+
+function_save_backups() {
+  local src_dir="/etc/nixos/bak"
+  local dst_dir="/home/$USER/Downloads/save_backup_configurations"
+  function_header_fixed | lolcat 2>/dev/null
+  printf "   ${MSG_SAVE_BACKUP_CONFIGURATIONS1} ${BOLD}${src_dir}${RESET}.
+   ${BOLD}${CYAN}${MSG_SAVE_BACKUP_CONFIGURATIONS2}${RESET}
+
+    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_ALL_BACKUPS^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 3-${TITLE_SAVE_BACKUPS^^}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  # Stores file names in an array
+  local files=($(ls $src_dir/*backup_configuration.zip 2>/dev/null | sed 's/\/etc\/nixos\/bak\///'))
+
+  if [[ ${#files[@]} -eq 0 ]]; then
+    echo ${NO_FILES_FOUND}${RESET}
+    exit 1
+  fi
+  # Select a file
+  printf "${BOLD}${ALL_FILES} ${RESET}\n"
+  for i in "${!files[@]}"; do
+    echo "$((i + 1))) ${files[$i]}"
+  done
+
+  # Read user choice
+  printf "${BOLD}${SELECT_A_FILE} ${RESET}"
+  read choice
+
+  # Assign the chosen file to a variable
+  local file_selected="${files[$((choice - 1))]}"
+
+  # Check if the choice is valid
+  if [[ -z "$file_selected" ]]; then
+    echo "${INVALID_OPTION}${RESET}"
+    exit 1
+  fi
+
+  # Case for handling choice dynamically
+  case "$file_selected" in
+  *)
+    # Checks if the target directory exists, otherwise creates
+    if [[ ! -d "$dst_dir" ]]; then
+      mkdir -p "$dst_dir"
+    fi
+    cp "$src_dir/$file_selected" "$dst_dir/$file_selected" 2>/dev/null
+    if [ $? -eq 0 ]; then
+      printf "\n   ${CYAN}${MSG_SAVE_BACKUP_CONFIGURATIONS3}${RESET}\n\n"
+      function_press_enter
+      function_backups_menu
+    else
+      printf "\n   ${RED}${MSG_SAVE_BACKUP_CONFIGURATIONS4}${RESET}\n\n"
+      function_press_enter
+      function_save_backups
+    fi
+    ;;
+  esac
+}
+
+
+# Function to display the main menu
 main_menu() {
   function_header_fixed | lolcat 2>/dev/null
   function_welcome_user
@@ -434,7 +525,7 @@ ${YELLOW}-----------------------------------------------------------------------
   echo -n "   ${CHOOSE_OPTION} "
   read option
   case $option in
-  1) backups_menu ;;
+  1) function_backups_menu ;;
   2) configure_hardware_menu ;;
   3) install_software_menu ;;
   4) configure_system_menu ;;
@@ -445,15 +536,15 @@ ${YELLOW}-----------------------------------------------------------------------
   esac
 }
 
-# Submenu de backups
-backups_menu() {
+# Submenu backups
+function_backups_menu() {
   local dst_dir="/etc/nixos/bak"
   local backup_file_base="backup_configuration.zip"
   function_header_fixed | lolcat 2>/dev/null
   printf "   ${BOLD}${YELLOW}${IMPORTANT^^}${RESET} ${BOLD}${MSG_INITIAL_BACKUP_REMINDER}${RESET}
    ${dst_dir}/${backup_file_base}
 
-    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_ALL_BACKUPS^^}${RESET}
+    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_ALL_ABOUT_BACKUPS^^}${RESET}
 ----------------------------------------------------------------------------------${RESET}
    1. ${CYAN}${OPTION_VIEW_BACKUP_FOLDER}${RESET}
    2. ${CYAN}${OPTION_VIEW_BACKUP_LIST}${RESET}
@@ -464,11 +555,12 @@ backups_menu() {
   echo -n "   ${CHOOSE_OPTION} "
   read option
   case $option in
-  1) echo "Ver a pasta de Backups" ;;
-  2) echo "Ver Lista de Backups" ;;
-  3) echo "Copiar Backups" ;;
+
+  1) function_view_dir_bak ;;
+  2) function_list_backups ;;
+  3) function_save_backups ;;
   0) main_menu ;;
-  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && backups_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && function_backups_menu ;;
   esac
 }
 
@@ -478,7 +570,7 @@ configure_hardware_menu() {
   printf "   ${MSG_CONFIGURE_YOUR_HARDWARE}
    ${BOLD}${MSG_NEW_FEATURES}${RESET} ${MSG_REPOGIT}
 
-    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 2-${TITLE_CONFIGURE_HARDWARE^^}${RESET}
+    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 2-${TITLE_CONFIGURE_HARDWARE^^}${RESET}
 ----------------------------------------------------------------------------------${RESET}
    1. ${CYAN}${OPTION_VIDEO_CARD}${RESET}
 
@@ -487,19 +579,19 @@ configure_hardware_menu() {
   echo -n "   ${CHOOSE_OPTION} "
   read option
   case $option in
-  1) video_card_menu ;;
+  1) function_video_card_menu ;;
   0) main_menu ;;
   *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && configure_hardware_menu ;;
   esac
 }
 
 # Submenu de placas de vídeo
-video_card_menu() {
+function_video_card_menu() {
   function_header_fixed | lolcat 2>/dev/null
   printf "   ${BOLD}${MSG_CONFIGURE_VIDEO_CARD}${RESET}
    ${MSG_OR_DETECT_VIDEO_CARD}
 
-    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 2-${TITLE_CONFIGURE_HARDWARE^^} ${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_VIDEO_CARD^^}${RESET}
+    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 2-${TITLE_CONFIGURE_HARDWARE^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_VIDEO_CARD^^}${RESET}
 ----------------------------------------------------------------------------------${RESET}
    1. ${CYAN}${OPTION_DETECT_VIDEO_CARD}${RESET}
    2. ${CYAN}${OPTION_INSTALL_INTEL_CARDS}${RESET}
@@ -513,14 +605,14 @@ video_card_menu() {
   echo -n "   ${CHOOSE_OPTION} "
   read option
   case $option in
-  1) echo "Detectar Placas de Vídeo" ;;
+  1) function_detect_gpu && function_press_enter && function_video_card_menu ;;
   2) echo "Instalar Placas Intel" ;;
   3) echo "Instalar Placas NVidia" ;;
   4) echo "Instalar Placas AMD" ;;
   5) echo "Instalar Placas Híbridas" ;;
   9) configure_hardware_menu ;;
   0) main_menu ;;
-  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && video_card_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && function_video_card_menu ;;
   esac
 }
 
@@ -530,7 +622,7 @@ install_software_menu() {
   printf "   ${BOLD}${MSG_SCRIPT_PURPOSE1}${RESET}
    ${MSG_SCRIPT_PURPOSE2}
 
-    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 3-${TITLE_INSTALL_APPS^^}${RESET}
+    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 3-${TITLE_INSTALL_APPS^^}${RESET}
 ----------------------------------------------------------------------------------${RESET}
    1. ${CYAN}${OPTION_ENABLE_FLATPAK}${RESET}
    2. ${CYAN}${OPTION_INSTALL_FLATPAK}${RESET}
@@ -560,7 +652,7 @@ install_software_menu() {
 # Submenu de configuração do sistema
 configure_system_menu() {
   function_header_fixed | lolcat 2>/dev/null
-  printf "    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 4-${TITLE_CONFIGURE_SYSTEM^^}${RESET}
+  printf "    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 4-${TITLE_CONFIGURE_SYSTEM^^}${RESET}
 ----------------------------------------------------------------------------------${RESET}
    1. ${CYAN}${OPTION_BOOTLOADERS}${RESET}
    2. ${CYAN}${OPTION_DESKTOP_ENVIRONMENT}${RESET}
@@ -580,7 +672,7 @@ configure_system_menu() {
 # Submenu de bootloaders
 bootloaders_menu() {
   function_header_fixed | lolcat 2>/dev/null
-  printf "    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 4-${TITLE_CONFIGURE_SYSTEM^^} ${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_BOOTLOADERS^^}${RESET}
+  printf "    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 4-${TITLE_CONFIGURE_SYSTEM^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_BOOTLOADERS^^}${RESET}
 ----------------------------------------------------------------------------------${RESET}
    1. ${CYAN}${OPTION_GRUB_INSTALL}${RESET}
    2. ${CYAN}${OPTION_GRUB_THEME}${RESET}
@@ -602,7 +694,7 @@ bootloaders_menu() {
 # Submenu de ambientes desktop
 desktops_environment_menu() {
   function_header_fixed | lolcat 2>/dev/null
-  printf "    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 4-${TITLE_CONFIGURE_SYSTEM^^} ${SYMBOL_TRIANGLE_RIGHT} 2-${TITLE_DESKTOP_ENVIRONMENT^^}${RESET}
+  printf "    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 4-${TITLE_CONFIGURE_SYSTEM^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 2-${TITLE_DESKTOP_ENVIRONMENT^^}${RESET}
 ----------------------------------------------------------------------------------${RESET}
    1. ${CYAN}${OPTION_INSTALL_GNOME}${RESET}
    2. ${CYAN}${OPTION_INSTALL_KDE}${RESET}
@@ -636,7 +728,7 @@ desktops_environment_menu() {
 # Submenu de instalação de jogos
 install_games_menu() {
   function_header_fixed | lolcat 2>/dev/null
-  printf "    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 5-${TITLE_INSTALL_GAMES^^}${RESET}
+  printf "    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 5-${TITLE_INSTALL_GAMES^^}${RESET}
 ----------------------------------------------------------------------------------${RESET}
    1. ${CYAN}${OPTION_INSTALL_STEAM}${RESET}
    2. ${CYAN}${OPTION_INSTALL_HEROIC}${RESET}
@@ -660,7 +752,7 @@ install_games_menu() {
 # Submenu de implantação de serviços
 implement_services_menu() {
   function_header_fixed | lolcat 2>/dev/null
-  printf "    ${BOLD}${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 6-${TITLE_DEPLOY_SERVICE^^}${RESET}
+  printf "    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 6-${TITLE_DEPLOY_SERVICE^^}${RESET}
 ----------------------------------------------------------------------------------${RESET}
    1. ${CYAN}${OPTION_INSTALL_WEB_DATA}${RESET}
    2. ${CYAN}${OPTION_INSTALL_VIRT}${RESET}
@@ -694,11 +786,6 @@ clear
 function_detect_language
 function_requirements
 function_header_fixed | lolcat 2>/dev/null
-sleep 0.5
 function_welcome_user
-sleep 0.5
-tput cup 13 0
 function_backup_initial
 main_menu
-#echo ""
-tput s
