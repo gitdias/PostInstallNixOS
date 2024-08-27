@@ -516,7 +516,6 @@ function_detect_gpu() {
 ----------------------------------------------------------------------------------${RESET}\n"
   BOLD=$(tput bold)
   RESET=$(tput sgr0)
-
   # Detects and stores the output of the lspci command by filtering VGA
   gpus=$(lspci | grep -i 'vga\|3d\|display' | grep VGA)
   # Counts the number of detected GPUs
@@ -552,7 +551,7 @@ function_detect_gpu() {
     gpu_DETECTED=": AMD - INTEL."
   else
     gpu_DETECTED=""
-  fi  
+  fi
   # Displays the number of GPUs detected
   printf "${WERE_DETECTED} ${BOLD}${qtd_gpu}${RESET} ${VIDEO_CARDS}${gpu_DETECTED}\n\n"
   # Formats and displays information for each GPU
@@ -573,12 +572,9 @@ function_detect_gpu() {
         for (i=2; i<=NF; i++) printf "%s ", $i
         printf "\n\n"
     }'
-
 }
-
-
 # Function to display the main menu
-main_menu() {
+function_main_menu() {
   function_header_fixed | lolcat 2>/dev/null
   function_welcome_user
   printf "    ${BOLD}${YELLOW}${SYMBOL_HOME} ${TITLE_CATEGORIZED_OPTIONS_MENU^^}${RESET}
@@ -596,13 +592,13 @@ ${YELLOW}-----------------------------------------------------------------------
   read option
   case $option in
   1) function_backups_menu ;;
-  2) configure_hardware_menu ;;
-  3) install_software_menu ;;
-  4) configure_system_menu ;;
-  5) install_games_menu ;;
-  6) implement_services_menu ;;
+  2) function_configure_hardware_menu ;;
+  3) function_install_software_menu ;;
+  4) function_configure_system_menu ;;
+  5) function_install_games_menu ;;
+  6) function_implement_services_menu ;;
   0) echo "" && exit 0 ;;
-  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && function_main_menu ;;
   esac
 }
 
@@ -629,13 +625,13 @@ function_backups_menu() {
   1) function_view_dir_bak ;;
   2) function_list_backups ;;
   3) function_save_backups ;;
-  0) main_menu ;;
+  0) function_main_menu ;;
   *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && function_backups_menu ;;
   esac
 }
 
-# Submenu de configuração de hardware
-configure_hardware_menu() {
+# Submenu configure hardware
+function_configure_hardware_menu() {
   function_header_fixed | lolcat 2>/dev/null
   printf "   ${MSG_CONFIGURE_YOUR_HARDWARE}
    ${BOLD}${MSG_NEW_FEATURES}${RESET} ${MSG_REPOGIT}
@@ -650,8 +646,8 @@ configure_hardware_menu() {
   read option
   case $option in
   1) function_video_card_menu ;;
-  0) main_menu ;;
-  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && configure_hardware_menu ;;
+  0) function_main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && function_configure_hardware_menu ;;
   esac
 }
 
@@ -680,14 +676,14 @@ function_video_card_menu() {
   3) echo "Instalar Placas NVidia" ;;
   4) echo "Instalar Placas AMD" ;;
   5) echo "Instalar Placas Híbridas" ;;
-  9) configure_hardware_menu ;;
-  0) main_menu ;;
+  9) function_configure_hardware_menu ;;
+  0) function_main_menu ;;
   *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && function_video_card_menu ;;
   esac
 }
 
 # Submenu de instalação de softwares
-install_software_menu() {
+function_install_software_menu() {
   function_header_fixed | lolcat 2>/dev/null
   printf "   ${BOLD}${MSG_SCRIPT_PURPOSE1}${RESET}
    ${MSG_SCRIPT_PURPOSE2}
@@ -714,13 +710,13 @@ install_software_menu() {
   5) echo "Instalar Apps no Sistema" ;;
   6) echo "Instalar Apps apenas para o Usuário" ;;
   7) echo "Testar Apps antes de Instalar" ;;
-  0) main_menu ;;
-  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && install_software_menu ;;
+  0) function_main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && function_install_software_menu ;;
   esac
 }
 
 # Submenu de configuração do sistema
-configure_system_menu() {
+function_configure_system_menu() {
   function_header_fixed | lolcat 2>/dev/null
   printf "    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 4-${TITLE_CONFIGURE_SYSTEM^^}${RESET}
 ----------------------------------------------------------------------------------${RESET}
@@ -734,8 +730,8 @@ configure_system_menu() {
   case $option in
   1) bootloaders_menu ;;
   2) desktops_environment_menu ;;
-  0) main_menu ;;
-  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && configure_system_menu ;;
+  0) function_main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && function_configure_system_menu ;;
   esac
 }
 
@@ -755,8 +751,8 @@ bootloaders_menu() {
   case $option in
   1) echo "Instalar GRUB" ;;
   2) echo "Temas GRUB" ;;
-  9) configure_system_menu ;;
-  0) main_menu ;;
+  9) function_configure_system_menu ;;
+  0) function_main_menu ;;
   *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && bootloaders_menu ;;
   esac
 }
@@ -789,14 +785,14 @@ desktops_environment_menu() {
   6) echo "Budgie" ;;
   7) echo "Mate" ;;
   8) echo "Hyprland" ;;
-  9) configure_system_menu ;;
-  0) main_menu ;;
+  9) function_configure_system_menu ;;
+  0) function_main_menu ;;
   *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && desktops_environment_menu ;;
   esac
 }
 
 # Submenu de instalação de jogos
-install_games_menu() {
+function_install_games_menu() {
   function_header_fixed | lolcat 2>/dev/null
   printf "    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 5-${TITLE_INSTALL_GAMES^^}${RESET}
 ----------------------------------------------------------------------------------${RESET}
@@ -814,13 +810,13 @@ install_games_menu() {
   2) echo "Instalar Heroic Games" ;;
   3) echo "Instalar Lutris" ;;
   4) echo "Instalar Game Flatpak" ;;
-  0) main_menu ;;
-  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && install_games_menu ;;
+  0) function_main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && function_install_games_menu ;;
   esac
 }
 
 # Submenu de implantação de serviços
-implement_services_menu() {
+function_implement_services_menu() {
   function_header_fixed | lolcat 2>/dev/null
   printf "    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 6-${TITLE_DEPLOY_SERVICE^^}${RESET}
 ----------------------------------------------------------------------------------${RESET}
@@ -846,8 +842,8 @@ implement_services_menu() {
   6) echo "Banco de Dados" ;;
   7) echo "Containers" ;;
   8) echo "Virtualização" ;;
-  0) main_menu ;;
-  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && implement_services_menu ;;
+  0) function_main_menu ;;
+  *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && function_implement_services_menu ;;
   esac
 }
 
@@ -858,4 +854,4 @@ function_requirements
 function_header_fixed | lolcat 2>/dev/null
 function_welcome_user
 function_backup_initial
-main_menu
+function_main_menu
