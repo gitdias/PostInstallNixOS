@@ -506,6 +506,76 @@ function_save_backups() {
   esac
 }
 
+# Function Detect GPU
+function_detect_gpu() {
+  function_header_fixed | lolcat 2>/dev/null
+  printf "   ${MSG_SAVE_BACKUP_CONFIGURATIONS1} ${BOLD}${src_dir}${RESET}.
+   ${BOLD}${CYAN}${MSG_SAVE_BACKUP_CONFIGURATIONS2}${RESET}
+
+    ${YELLOW}${SYMBOL_HOME} 0-${TITLE_OPTIONS_MENU^^} ${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_CONFIGURE_HARDWARE^^} ${BOLD}${SYMBOL_TRIANGLE_RIGHT} 1-${TITLE_DETECT_VIDEO_CARD^^}${RESET}
+----------------------------------------------------------------------------------${RESET}\n"
+  BOLD=$(tput bold)
+  RESET=$(tput sgr0)
+
+  # Detects and stores the output of the lspci command by filtering VGA
+  gpus=$(lspci | grep -i 'vga\|3d\|display' | grep VGA)
+  # Counts the number of detected GPUs
+  qtd_gpu=$(echo "$gpus" | wc -l)
+  # Initializes control variables for GPU types
+  has_intel=false
+  has_nvidia=false
+  has_amd=false
+  # Check detected GPU models
+  if echo "$gpus" | grep -qi 'intel'; then
+    has_intel=true
+  fi
+
+  if echo "$gpus" | grep -qi 'nvidia'; then
+    has_nvidia=true
+  fi
+
+  if echo "$gpus" | grep -qi 'amd'; then
+    has_amd=true
+  fi
+  # Determines and displays the message about the type of GPU detected
+  if $has_intel && ! $has_nvidia && ! $has_amd; then
+    gpu_DETECTED=": INTEL."
+  elif $has_nvidia && ! $has_intel && ! $has_amd; then
+    gpu_DETECTED=": NVIDIA."
+  elif $has_amd && ! $has_intel && ! $has_nvidia; then
+    gpu_DETECTED=": AMD."
+  elif $has_nvidia && $has_intel && ! $has_amd; then
+    gpu_DETECTED=": NVIDIA - INTEL."
+  elif $has_nvidia && $has_amd && ! $has_intel; then
+    gpu_DETECTED=": NVIDIA - AMD."
+  elif $has_amd && $has_intel && ! $has_nvidia; then
+    gpu_DETECTED=": AMD - INTEL."
+  else
+    gpu_DETECTED=""
+  fi  
+  # Displays the number of GPUs detected
+  printf "${WERE_DETECTED} ${BOLD}${qtd_gpu}${RESET} ${VIDEO_CARDS}${gpu_DETECTED}\n\n"
+  # Formats and displays information for each GPU
+  printf "$gpus" | awk -v bold="$BOLD" -v reset="$RESET" '
+    {
+        # Remove "VGA compatible controller:" e "(rev ...)"
+        sub(/VGA compatible controller: /, "", $0)
+        sub(/\(rev .*?\)/, "", $0)
+
+        # Print the GPU number
+        printf bold "GPU: " reset "%d\n", NR
+        
+        # Print the ID (bus)
+        printf bold "ID:  " reset "%s\n", $1
+        
+        # Prints the GPU model and sets the GPU type variable
+        printf bold "MODEL: " reset
+        for (i=2; i<=NF; i++) printf "%s ", $i
+        printf "\n\n"
+    }'
+
+}
+
 
 # Function to display the main menu
 main_menu() {
