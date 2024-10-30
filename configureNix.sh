@@ -573,6 +573,98 @@ function_detect_gpu() {
         printf "\n\n"
     }'
 }
+function_install_gpu_NVIDIA_AMD() {
+  local config_file="/etc/nixos/configuration.nix"
+  local search_line="  imports ="
+  local insert_line="      ./config_gpu.nix"
+
+  # Checking if the row has already been added
+  if grep -q "${insert_line}" "$config_file"; then
+    printf "\n${THE_FILE} ${BOLD}${insert_line:8:22}${RESET} ${IS_READY_IMPORT} ${BOLD}${config_file:11:28}.${RESET}
+    
+   ${BOLD}${FILE_DETAILS^^} ${CYAN}/etc/nixos/config_gpu.nix${RESET}\n"
+    ls -lh /etc/nixos/config_gpu.nix
+    printf "   "
+  else
+    # Using sudo to edit the file and add the line below "  imports ="
+    sudo sed -i "/${search_line}/!b;n;a\\
+${insert_line}" "$config_file"
+
+    local file_path="/etc/nixos/config_gpu.nix"
+
+    sudo tee "$file_path" >/dev/null <<EOF
+{ config, lib, pkgs, ... }:
+{
+
+# Nvidia settings for hybrid graphics(AMD video cores and Nvidia)
+services.xserver.videoDrivers = ["nvidia" "amdgpu-pro"];
+
+hardware.nvidia = {
+  # Enable the Nvidia settings menu,
+  nvidiaSettings = true;
+  
+  # Modesetting is required.
+  modesetting.enable = true;
+  
+  # Nvidia power management. Experimental, and can cause sleep/suspend to fail.
+  powerManagement.enable = false;
+  
+  # Optionally, you may need to select the appropriate driver version for your specific GPU.
+  package = config.boot.kernelPackages.nvidiaPackages.stable;
+  
+  # Fixes a glitch
+  nvidiaPersistenced = true;
+  
+  # Required for amdgpu and nvidia gpu pairings
+  prime = {
+    #sync.enable = true;
+    #reverseSync.enable = true;
+    
+    # Enable if using an external GPU
+    #allowExternalGpu = false;
+    
+    # Whether to enable render offload support using the NVIDIA proprietary driver via PRIME.
+    offload.enable = true;
+    
+    # Report bus IDs for NVIDIA and AMD GPUs
+    amdgpuBusId = "PCI:5:0:0";
+    nvidiaBusId = "PCI:1:0:0";
+  };
+};
+
+# Enable OpenGL drivers.
+   hardware.opengl = {
+    enable = true;
+    driSupport = true;
+    driSupport32Bit = true;
+  };
+  
+# Packages necessary
+environment.systemPackages = with pkgs; [
+  glxinfo
+  lshw
+  nvtop
+  autoAddDriverRunpath
+  amdvlk
+  driversi686Linux.amdvlk
+];
+
+}
+EOF
+
+    printf "\n${THE_FILE} ${BOLD}${insert_line:8:22}${RESET} ${IS_READY_IMPORT} ${BOLD}${config_file:11:28}.${RESET}
+    
+  ${BOLD}${FILE_DETAILS^^} ${CYAN}/etc/nixos/config_gpu.nix${RESET}\n"
+    ls -lh /etc/nixos/config_gpu.nix
+
+    printf "\n   ${BOLD}${FILE_DETAILS^^} ${CYAN}/etc/nixos/configuration.nix${RESET}\n"
+
+    head -n 15 /etc/nixos/configuration.nix
+    echo ""
+  fi
+  function_press_enter
+  function_video_card_menu
+}
 # Function to display the main menu
 function_main_menu() {
   function_header_fixed | lolcat 2>/dev/null
@@ -584,7 +676,8 @@ ${YELLOW}-----------------------------------------------------------------------
    3. ${CYAN}${CATEGORY_SOFTWARE_INSTALLATION}${RESET}
    4. ${CYAN}${CATEGORY_SYSTEM_SETTINGS}${RESET}
    5. ${CYAN}${CATEGORY_GAME_INSTALLATION}${RESET}
-   6. ${CYAN}${SERVICE_DEPLOYMENT}${RESET}
+   6. ${CYAN}${CATEGORY_SERVICE_DEPLOYMENT}${RESET}
+   7. ${CYAN}${CATEGORY_APPLY_ALL_CHANGES}${RESET}
 
    0. ${CYAN}${EXIT_SCRIPT}${RESET}
 ${YELLOW}----------------------------------------------------------------------------------${RESET}\n"
@@ -664,6 +757,8 @@ function_video_card_menu() {
    3. ${CYAN}${OPTION_INSTALL_NVIDIA_CARDS}${RESET}
    4. ${CYAN}${OPTION_INSTALL_AMD_CARDS}${RESET}
    5. ${CYAN}${OPTION_INSTALL_HIBRID_CARDS}${RESET}
+   6. ${CYAN}${OPTION_INSTALL_HIBRID_CARDS}${RESET}
+   7. ${CYAN}${OPTION_INSTALL_HIBRID_CARDS}${RESET}
 
    9. ${CYAN}${OPTION_BACK_TO_PREVIOUS_MENU}${RESET}
    0. ${CYAN}${OPTION_BACK_TO_MAIN_MENU}${RESET}
@@ -675,7 +770,9 @@ function_video_card_menu() {
   2) echo "Instalar Placas Intel" ;;
   3) echo "Instalar Placas NVidia" ;;
   4) echo "Instalar Placas AMD" ;;
-  5) echo "Instalar Placas Híbridas" ;;
+  5) function_install_gpu_NVIDIA_AMD ;;
+  6) echo "Instalar Placas NVidia" ;;
+  7) echo "Instalar Placas AMD" ;;
   9) function_configure_hardware_menu ;;
   0) function_main_menu ;;
   *) echo -e "  ${RED}${SYMBOL_ERROR}${RESET} ${BOLD}${INVALID_OPTION}${RESET} ${TRY_AGAIN}${RESET}" && sleep 2 && function_video_card_menu ;;
